@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>REGIX // Login</title>
+    <link
+      rel="stylesheet"
+      href="/css/dist.css" />
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <canvas
+      id="particleCanvas"
+      class="fixed inset-0 -z-10 pointer-events-none"></canvas>
+
+    <div class="relative z-10 w-full max-w-md px-6 py-8">
+      <div class="glass-card rounded-xl p-8">
+        <!-- Tabs: Panel Login / User Login -->
+        <div class="flex gap-1 mb-6 bg-[rgba(0,0,0,0.2)] rounded-lg p-1">
+          <button
+            id="tabPanel"
+            class="flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 bg-[rgba(0,240,255,0.12)] text-[#00f0ff] border border-[rgba(0,240,255,0.2)]">
+            PANEL LOGIN
+          </button>
+          <button
+            id="tabUser"
+            class="flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 text-[#64748b] border border-transparent hover:text-[#e2e8f0]">
+            USER LOGIN
+          </button>
+        </div>
+
+        <!-- Panel Login Form -->
+        <div id="panelLoginSection">
+          <div class="text-center mb-6">
+            <div
+              class="inline-block bg-[rgba(0,240,255,0.1)] border border-[#00f0ff] text-[#00f0ff] px-3 py-1 rounded text-xs tracking-widest mb-3">
+              v3.0
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-widest">
+              REGIX<span class="text-[#00f0ff] font-light ml-3 text-xl"
+                >// AUTH</span
+              >
+            </h1>
+            <p class="text-[#64748b] text-sm mt-2">Admin Panel Login</p>
+          </div>
+
+          <form
+            id="panelLoginForm"
+            class="space-y-4">
+            <input
+              type="text"
+              id="panelUsername"
+              placeholder="Username"
+              autocomplete="username"
+              required
+              class="w-full px-3 py-2.5 rounded text-sm" />
+            <input
+              type="password"
+              id="panelPassword"
+              placeholder="Password"
+              autocomplete="current-password"
+              required
+              class="w-full px-3 py-2.5 rounded text-sm" />
+            <button
+              type="submit"
+              id="panelLoginBtn"
+              class="btn-neon w-full py-3 text-xs tracking-widest">
+              <span class="relative z-10">AUTHENTICATE</span>
+            </button>
+          </form>
+          <div
+            id="panelLoginError"
+            class="text-center text-sm min-h-[1.5rem] mt-4"></div>
+        </div>
+
+        <!-- User Login Form (Hidden by default) -->
+        <div
+          id="userLoginSection"
+          class="hidden">
+          <div class="text-center mb-6">
+            <div
+              class="inline-block bg-[rgba(0,240,255,0.1)] border border-[#00f0ff] text-[#00f0ff] px-3 py-1 rounded text-xs tracking-widest mb-3">
+              v3.0
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-widest">
+              REGIX<span class="text-[#00f0ff] font-light ml-3 text-xl"
+                >// USER</span
+              >
+            </h1>
+            <p class="text-[#64748b] text-sm mt-2">
+              License Key / Account Login
+            </p>
+          </div>
+
+          <form
+            id="userLoginForm"
+            class="space-y-4">
+            <input
+              type="text"
+              id="userLoginUsername"
+              placeholder="Username / License Key"
+              autocomplete="username"
+              required
+              class="w-full px-3 py-2.5 rounded text-sm" />
+            <input
+              type="password"
+              id="userLoginPassword"
+              placeholder="Password"
+              autocomplete="current-password"
+              class="w-full px-3 py-2.5 rounded text-sm" />
+            <button
+              type="submit"
+              id="userLoginBtn"
+              class="btn-neon w-full py-3 text-xs tracking-widest">
+              <span class="relative z-10">AUTHENTICATE</span>
+            </button>
+          </form>
+          <div
+            id="userLoginError"
+            class="text-center text-sm min-h-[1.5rem] mt-4"></div>
+        </div>
+
+        <div class="flex justify-center gap-4 mt-6 text-sm">
+          <a
+            href="/docs"
+            class="text-[#00f0ff] hover:underline"
+            >Documentation</a
+          >
+          <a
+            href="/register"
+            class="text-[#00f0ff] hover:underline"
+            >Register</a
+          >
+          <a
+            href="https://discord.gg/regix"
+            target="_blank"
+            class="text-[#00f0ff] hover:underline"
+            >Discord</a
+          >
+        </div>
+      </div>
+    </div>
+
+    <script src="/js/particles.js"></script>
+    <script src="/js/toast.js"></script>
+    <script>
+      (function () {
+        // Tab switching
+        var tabPanel = document.getElementById("tabPanel");
+        var tabUser = document.getElementById("tabUser");
+        var panelSection = document.getElementById("panelLoginSection");
+        var userSection = document.getElementById("userLoginSection");
+
+        tabPanel.addEventListener("click", function () {
+          panelSection.classList.remove("hidden");
+          userSection.classList.add("hidden");
+          tabPanel.className =
+            "flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 bg-[rgba(0,240,255,0.12)] text-[#00f0ff] border border-[rgba(0,240,255,0.2)]";
+          tabUser.className =
+            "flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 text-[#64748b] border border-transparent hover:text-[#e2e8f0]";
+        });
+
+        tabUser.addEventListener("click", function () {
+          userSection.classList.remove("hidden");
+          panelSection.classList.add("hidden");
+          tabUser.className =
+            "flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 bg-[rgba(0,240,255,0.12)] text-[#00f0ff] border border-[rgba(0,240,255,0.2)]";
+          tabPanel.className =
+            "flex-1 py-2 text-xs font-bold tracking-wider rounded-md transition-all duration-300 text-[#64748b] border border-transparent hover:text-[#e2e8f0]";
+        });
+
+        // Panel Login
+        var panelForm = document.getElementById("panelLoginForm");
+        var panelBtn = document.getElementById("panelLoginBtn");
+        var panelBtnText = panelBtn.querySelector("span");
+        var panelError = document.getElementById("panelLoginError");
+
+        panelForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var username = document.getElementById("panelUsername").value.trim();
+          var password = document.getElementById("panelPassword").value.trim();
+
+          if (!username || !password) {
+            panelError.textContent = "All fields are required.";
+            panelError.className =
+              "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+            return;
+          }
+
+          panelBtn.disabled = true;
+          panelBtnText.textContent = "AUTHENTICATING...";
+          panelError.textContent = "";
+
+          try {
+            var res = await fetch("/api/panel/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: username, password: password }),
+            });
+            var data = await res.json();
+            if (data.success) {
+              localStorage.setItem("token", data.token);
+              localStorage.setItem("user", JSON.stringify(data.user));
+              showToast("Login successful! Redirecting...", "success");
+              setTimeout(function () {
+                window.location.href = "/dashboard";
+              }, 500);
+            } else {
+              panelError.textContent = data.error || "Invalid credentials";
+              panelError.className =
+                "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+              showToast(data.error || "Invalid credentials", "error");
+            }
+          } catch (err) {
+            panelError.textContent = "Connection error: " + err.message;
+            panelError.className =
+              "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+            showToast("Connection error", "error");
+          }
+
+          panelBtn.disabled = false;
+          panelBtnText.textContent = "AUTHENTICATE";
+        });
+
+        // User Login
+        var userForm = document.getElementById("userLoginForm");
+        var userBtn = document.getElementById("userLoginBtn");
+        var userBtnText = userBtn.querySelector("span");
+        var userError = document.getElementById("userLoginError");
+
+        userForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var username = document
+            .getElementById("userLoginUsername")
+            .value.trim();
+          var password = document
+            .getElementById("userLoginPassword")
+            .value.trim();
+
+          if (!username || !password) {
+            userError.textContent = "All fields are required.";
+            userError.className =
+              "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+            return;
+          }
+
+          userBtn.disabled = true;
+          userBtnText.textContent = "AUTHENTICATING...";
+          userError.textContent = "";
+
+          try {
+            var res = await fetch("/api/user/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username: username, password: password }),
+            });
+            var data = await res.json();
+            if (data.success) {
+              localStorage.setItem("userToken", data.token);
+              localStorage.setItem("userData", JSON.stringify(data.user));
+              showToast("Login successful! Redirecting...", "success");
+              setTimeout(function () {
+                window.location.href = "/user-dashboard";
+              }, 500);
+            } else {
+              userError.textContent = data.message || "Invalid credentials";
+              userError.className =
+                "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+              showToast(data.message || "Invalid credentials", "error");
+            }
+          } catch (err) {
+            userError.textContent = "Connection error: " + err.message;
+            userError.className =
+              "text-center text-sm text-[#ff0055] min-h-[1.5rem] mt-4";
+            showToast("Connection error", "error");
+          }
+
+          userBtn.disabled = false;
+          userBtnText.textContent = "AUTHENTICATE";
+        });
+      })();
+    </script>
+  </body>
+</html>
