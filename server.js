@@ -1125,7 +1125,7 @@ async function requireBotAccount(interaction) {
   const user = await getAppUserByDiscordId(discordId);
   if (!user) {
     await interaction.editReply({
-      content: `❌ **Account Required**\nYou must first create an account at ${process.env.SITE_URL || "http://localhost:3000"}/register\nLink your Discord ID during registration to use bot commands.`,
+      content: `❌ **Account Required**\nYou must first create an account at ${process.env.SITE_URL || "https://regix-auth.onrender.com"}/register\nLink your Discord ID during registration to use bot commands.`,
     });
     return null;
   }
@@ -1356,7 +1356,7 @@ async function handleInteraction(interaction) {
     const member = await getDiscordMember(guildId, user.id);
     if (!member) {
       return interaction.reply({
-        content: `❌ You must be a member of our Discord server to use commands.\nJoin: https://discord.gg/regix`,
+        content: `❌ You must be a member of our Discord server to use commands.\nJoin: https://discord.gg/zZwDv7ks5W`,
         ephemeral: true,
       });
     }
