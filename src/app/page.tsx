@@ -11,18 +11,18 @@ const HomePage = () => {
   return (
     <div className="flex min-h-dvh flex-col">
       {/* Hero Section */}
-      <section className="flex flex-1 items-center justify-center px-4 pt-20">
+      <section className="flex flex-1 items-center justify-center px-4 py-16 md:py-24">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="bg-primary/10 text-primary mb-8 inline-block rounded-full px-4 py-1.5 text-sm font-medium">
+          <div className="bg-primary/10 text-primary mb-6 inline-block rounded-full px-4 py-1.5 text-sm font-medium">
             🔐 Version 1.0.0
           </div>
-          <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl">
+          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             Regix{" "}
             <span className="from-primary to-primary/60 bg-linear-to-r bg-clip-text text-transparent">
               Auth
             </span>
           </h1>
-          <p className="text-muted-foreground mb-8 text-xl">
+          <p className="text-muted-foreground mb-6 text-base sm:text-lg md:text-xl">
             Universal authentication & authorization system for web apps,
             desktop applications, Windows Forms, DLLs, terminal apps, and more.
           </p>

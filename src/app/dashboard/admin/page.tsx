@@ -205,43 +205,43 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card>
-          <CardHeader className="pb-2">
-            <p className="text-muted-foreground text-sm font-medium">
+          <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+            <p className="text-muted-foreground text-xs font-medium sm:text-sm">
               Total Users
             </p>
-            <p className="text-3xl font-bold">{users.length}</p>
+            <p className="text-2xl font-bold sm:text-3xl">{users.length}</p>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <p className="text-muted-foreground text-sm font-medium">
+          <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+            <p className="text-muted-foreground text-xs font-medium sm:text-sm">
               Active Users
             </p>
-            <p className="text-3xl font-bold text-green-500">
+            <p className="text-2xl font-bold text-green-500 sm:text-3xl">
               {activeUsers.length}
             </p>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <p className="text-muted-foreground text-sm font-medium">
+          <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+            <p className="text-muted-foreground text-xs font-medium sm:text-sm">
               Blacklisted
             </p>
-            <p className="text-3xl font-bold text-red-500">
+            <p className="text-2xl font-bold text-red-500 sm:text-3xl">
               {blacklistedUsers.length}
             </p>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="pb-2">
-            <p className="text-muted-foreground text-sm font-medium">
+          <CardHeader className="px-3 py-2 sm:px-6 sm:py-4">
+            <p className="text-muted-foreground text-xs font-medium sm:text-sm">
               Keys (Redeemed)
             </p>
-            <p className="text-3xl font-bold">
+            <p className="text-2xl font-bold sm:text-3xl">
               {totalKeys}{" "}
-              <span className="text-muted-foreground text-sm">
+              <span className="text-muted-foreground text-xs sm:text-sm">
                 ({redeemedKeys})
               </span>
             </p>

@@ -1,6 +1,5 @@
 import { AppSidebar } from "@/components/Navigation/AppSidebar";
 import ThemeProvider from "@/components/Providers/ThemeProvider";
-import ToastProvider from "@/components/Providers/ToastProvider";
 import {
   SidebarInset,
   SidebarProvider,
@@ -26,6 +25,12 @@ const RootLayout = ({ children }: RootLayoutProps) => {
         notoSansHeading.variable,
       )}
       suppressHydrationWarning>
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
+        />
+      </head>
       <body>
         <ThemeProvider
           attribute={"class"}
@@ -34,14 +39,15 @@ const RootLayout = ({ children }: RootLayoutProps) => {
           <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-              <header className="bg-background/80 sticky top-0 z-40 flex h-14 items-center gap-2 border-b px-4 backdrop-blur-sm">
+              <header className="bg-background/80 sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur-sm">
                 <SidebarTrigger className="-ml-2" />
-                <span className="text-sm font-semibold">Regix Auth</span>
+                <span className="truncate text-sm font-semibold">
+                  Regix Auth
+                </span>
               </header>
-              <main className="flex-1">{children}</main>
+              <main className="min-h-dvh flex-1">{children}</main>
             </SidebarInset>
           </SidebarProvider>
-          <ToastProvider />
         </ThemeProvider>
       </body>
     </html>

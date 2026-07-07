@@ -22,10 +22,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     const { users, count } = result.data;
     const totalUsers = count || 0;
-    const activeUsers = users.filter((u: any) => u.isActive).length;
-    const blacklistedUsers = users.filter((u: any) => u.isBlacklisted).length;
-    const admins = users.filter((u: any) => u.role === "ADMIN").length;
-    const mods = users.filter((u: any) => u.role === "MOD").length;
+    const activeUsers = users.filter(
+      (u: { isActive: boolean }) => u.isActive,
+    ).length;
+    const blacklistedUsers = users.filter(
+      (u: { isBlacklisted: boolean }) => u.isBlacklisted,
+    ).length;
+    const admins = users.filter(
+      (u: { role: string }) => u.role === "ADMIN",
+    ).length;
+    const mods = users.filter((u: { role: string }) => u.role === "MOD").length;
 
     const embed = new EmbedBuilder()
       .setTitle("📊 System Statistics")

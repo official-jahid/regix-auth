@@ -9,6 +9,8 @@ import {
   getUserInfo,
   manageUser,
   removeFromWhitelist,
+  resetUserPassword,
+  resetUserUsername,
 } from "../utils/api.js";
 import { requireAdmin, requireAdminOrMod } from "../utils/permissions.js";
 
@@ -407,6 +409,142 @@ export async function genlicenseExecute(
     await interaction.editReply({ embeds: [embed] });
   } catch (error) {
     console.error("genlicense error:", error);
+    await interaction.editReply({ content: "❌ An error occurred." });
+  }
+}
+
+// ============================================================
+// /resetpassword
+// ============================================================
+export const resetpasswordData = new SlashCommandBuilder()
+  .setName("resetpassword")
+  .setDescription("[Admin] Reset a user's password")
+  .addStringOption((opt) =>
+    opt
+      .setName("user")
+      .setDescription("Username or email of the user")
+      .setRequired(true),
+  )
+  .addStringOption((opt) =>
+    opt
+      .setName("newpassword")
+      .setDescription("New password (min 6 characters)")
+      .setRequired(true),
+  );
+
+export async function resetpasswordExecute(
+  interaction: ChatInputCommandInteraction,
+) {
+  if (!(await requireAdmin(interaction))) return;
+
+  const identifier = interaction.options.getString("user", true);
+  const newPassword = interaction.options.getString("newpassword", true);
+
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    const findType = identifier.includes("@") ? "email" : "username";
+    const userResult = await getUserInfo(identifier, findType);
+
+    if (!userResult.ok) {
+      await interaction.editReply({
+        content: `❌ User not found: ${identifier}`,
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      await interaction.editReply({
+        content: "❌ Password must be at least 6 characters",
+      });
+      return;
+    }
+
+    const result = await resetUserPassword(
+      userResult.data.user.id,
+      newPassword,
+    );
+
+    if (!result.ok) {
+      await interaction.editReply({
+        content: `❌ ${result.data.error || "Failed to reset password"}`,
+      });
+      return;
+    }
+
+    await interaction.editReply({
+      content: `✅ ${result.data.message}`,
+    });
+  } catch (error) {
+    console.error("resetpassword error:", error);
+    await interaction.editReply({ content: "❌ An error occurred." });
+  }
+}
+
+// ============================================================
+// /resetusername
+// ============================================================
+export const resetusernameData = new SlashCommandBuilder()
+  .setName("resetusername")
+  .setDescription("[Admin] Reset a user's username")
+  .addStringOption((opt) =>
+    opt
+      .setName("user")
+      .setDescription("Username or email of the user")
+      .setRequired(true),
+  )
+  .addStringOption((opt) =>
+    opt
+      .setName("newusername")
+      .setDescription("New username (min 3 characters)")
+      .setRequired(true),
+  );
+
+export async function resetusernameExecute(
+  interaction: ChatInputCommandInteraction,
+) {
+  if (!(await requireAdmin(interaction))) return;
+
+  const identifier = interaction.options.getString("user", true);
+  const newUsername = interaction.options.getString("newusername", true);
+
+  await interaction.deferReply({ ephemeral: true });
+
+  try {
+    const findType = identifier.includes("@") ? "email" : "username";
+    const userResult = await getUserInfo(identifier, findType);
+
+    if (!userResult.ok) {
+      await interaction.editReply({
+        content: `❌ User not found: ${identifier}`,
+      });
+      return;
+    }
+
+    if (newUsername.length < 3) {
+      await interaction.editReply({
+        content: "❌ Username must be at least 3 characters",
+      });
+      return;
+    }
+
+    const result = await resetUserUsername(
+      userResult.data.user.id,
+      newUsername,
+    );
+
+    if (!result.ok) {
+      await interaction.editReply({
+        content: `❌ ${result.data.error || "Failed to reset username"}`,
+      });
+      return;
+    }
+
+    await interaction.editReply({
+      content: `✅ ${result.data.message}`,
+    });
+  } catch (error) {
+    console.error("resetusername error:", error);
     await interaction.editReply({ content: "❌ An error occurred." });
   }
 }

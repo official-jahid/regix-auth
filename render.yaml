@@ -12,13 +12,12 @@ services:
       export BUN_INSTALL="/opt/render/.bun"
       export PATH="$BUN_INSTALL/bin:$PATH"
       bun install
-      bun run migrate
-      bunx prisma db seed
-      bun run build
+      bun migrate
+      bun seed
     startCommand: |
       export BUN_INSTALL="/opt/render/.bun"
       export PATH="$BUN_INSTALL/bin:$PATH"
-      next start
+      bun dev
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION

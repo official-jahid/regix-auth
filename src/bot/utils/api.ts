@@ -1,6 +1,7 @@
 const API_BASE = process.env.API_BASE_URL || "http://localhost:3000";
 const SECRET_KEY = process.env.SECRET_KEY || "";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function botFetch(path: string, body: any) {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
@@ -23,6 +24,7 @@ export async function generateKeys(
   return botFetch("/api/bot/keys/generate", { count, duration, isLifetime });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function manageUser(action: string, params: Record<string, any>) {
   return botFetch("/api/bot/users/manage", { action, ...params });
 }
@@ -72,4 +74,20 @@ export async function addToWhitelist(userId: string) {
 
 export async function removeFromWhitelist(userId: string) {
   return botFetch("/api/bot/whitelist/modify", { action: "remove", userId });
+}
+
+export async function resetUserPassword(userId: string, newPassword: string) {
+  return botFetch("/api/bot/users/manage", {
+    action: "resetPassword",
+    userId,
+    newPassword,
+  });
+}
+
+export async function resetUserUsername(userId: string, newUsername: string) {
+  return botFetch("/api/bot/users/manage", {
+    action: "resetUsername",
+    userId,
+    newUsername,
+  });
 }

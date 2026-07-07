@@ -177,6 +177,99 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      case "resetPassword": {
+        const { userId: rpId, newPassword } = params;
+        if (!rpId || !newPassword) {
+          return NextResponse.json(
+            { error: "userId and newPassword are required" },
+            { status: 400 },
+          );
+        }
+
+        if (newPassword.length < 6) {
+          return NextResponse.json(
+            { error: "Password must be at least 6 characters" },
+            { status: 400 },
+          );
+        }
+
+        const rpUser = await prisma.user.findUnique({ where: { id: rpId } });
+        if (!rpUser) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 },
+          );
+        }
+
+        const passwordHash = await hashPassword(newPassword);
+        await prisma.user.update({
+          where: { id: rpId },
+          data: { passwordHash },
+        });
+
+        // Destroy all sessions for security
+        await prisma.session.deleteMany({ where: { userId: rpId } });
+
+        await logAudit("USER_PASSWORD_RESET_BOT", rpId);
+
+        return NextResponse.json({
+          success: true,
+          message: `Password for ${rpUser.username} has been reset. All sessions terminated.`,
+        });
+      }
+
+      case "resetUsername": {
+        const { userId: ruId, newUsername } = params;
+        if (!ruId || !newUsername) {
+          return NextResponse.json(
+            { error: "userId and newUsername are required" },
+            { status: 400 },
+          );
+        }
+
+        if (newUsername.length < 3) {
+          return NextResponse.json(
+            { error: "Username must be at least 3 characters" },
+            { status: 400 },
+          );
+        }
+
+        const ruUser = await prisma.user.findUnique({ where: { id: ruId } });
+        if (!ruUser) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 },
+          );
+        }
+
+        // Check if new username is already taken
+        const existing = await prisma.user.findUnique({
+          where: { username: newUsername },
+        });
+        if (existing && existing.id !== ruId) {
+          return NextResponse.json(
+            { error: "Username is already taken" },
+            { status: 409 },
+          );
+        }
+
+        await prisma.user.update({
+          where: { id: ruId },
+          data: { username: newUsername },
+        });
+
+        await logAudit(
+          "USER_USERNAME_RESET_BOT",
+          ruId,
+          JSON.stringify({ oldUsername: ruUser.username, newUsername }),
+        );
+
+        return NextResponse.json({
+          success: true,
+          message: `Username changed from ${ruUser.username} to ${newUsername}`,
+        });
+      }
+
       case "list": {
         const users = await prisma.user.findMany({
           select: {
