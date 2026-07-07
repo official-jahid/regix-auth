@@ -1,177 +1,172 @@
-datasource db {
-    provider = "sqlite"
-}
+// ============================================================
+// REGIX AUTH SYSTEM - PRISMA SCHEMA
+// ============================================================
 
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  runtime  = "nodejs"
 }
 
-model PanelUser {
-    id              Int           @id @default(autoincrement())
-    username        String        @unique
-    password        String
-    email           String        @unique
-    role            String        @default("user")
-    avatar          String?
-    discordId       String?
-    isActive        Boolean       @default(true)
-    createdAt       DateTime      @default(now())
-    updatedAt       DateTime      @updatedAt
-    createdTickets  Ticket[]      @relation("TicketCreator")
-    assignedTickets Ticket[]      @relation("TicketAssignee")
-    replies         TicketReply[]
+datasource db {
+  provider = "sqlite"
 }
 
-model UserApi {
-    id         Int      @id @default(autoincrement())
-    api_name   String   @unique
-    api_key    String   @unique @default(cuid())
-    owner_id   Int      @default(0)
-    rate_limit Int      @default(1000)
-    is_active  Boolean  @default(true)
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
+// ============================================================
+// USER MODEL
+// ============================================================
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  passwordHash  String
+  displayName   String?
+  avatarUrl     String?
+  role          String   @default("USER") // USER, ADMIN, MOD
+  isActive      Boolean  @default(true)
+  isBlacklisted Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  sessions         Session[]
+  devices          Device[]
+  discordAccount   DiscordAccount?
+  premiumKeys      PremiumKey[]
+  loginHistory     LoginHistory[]
+  blacklistHistory BlacklistEntry[]
 }
 
-model Key {
-    id           Int       @id @default(autoincrement())
-    api_id       Int       @default(0)
-    key_code     String    @unique
-    duration     Int       @default(24)
-    max_devices  Int       @default(1)
-    used_devices String    @default("")
-    note         String    @default("")
-    owner_id     Int       @default(0)
-    status       String    @default("active")
-    // "active" | "redeemed" | "expired" | "banned" | "frozen"
-    expiry_date  DateTime?
-    created_at   DateTime  @default(now())
-    last_used_at DateTime?
-    ip_address   String?
-    metadata     String?
-    // New: link to the user who redeemed this key
-    redeemed_by  Int?      @default(0)
-    redeemed_at  DateTime?
+// ============================================================
+// SESSION MODEL
+// ============================================================
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  ip        String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
 }
 
-model AppUser {
-    id              Int         @id @default(autoincrement())
-    username        String      @unique
-    fullName        String? // New: Full Name
-    email           String?     @unique
-    password        String
-    discordId       String? // New: Discord User ID
-    duration        Int         @default(720)
-    max_devices     Int         @default(1)
-    used_devices    String      @default("")
-    status          String      @default("active")
-    expiry_date     DateTime?
-    last_login      DateTime?   @default(now())
-    ip_address      String? // New: Current IP address
-    owner_id        Int         @default(0)
-    created_at      DateTime    @default(now())
-    updated_at      DateTime    @updatedAt
-    metadata        String?
-    // New: Last HWID reset timestamp (for 24-hour cooldown)
-    last_hwid_reset DateTime?
-    // New: The license key this user was created from
-    redeemed_key    String?
-    hwidResets      HwidReset[]
+// ============================================================
+// DEVICE MODEL (HWID, SID tracking)
+// ============================================================
+model Device {
+  id           String    @id @default(cuid())
+  userId       String
+  hwid         String // Hardware ID
+  sid          String? // Security Identifier
+  ip           String?
+  isActive     Boolean   @default(true)
+  lastSeenAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sidUpdatedAt DateTime? // Track when SID was last changed (24h cooldown)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hwid])
+  @@index([hwid])
+  @@index([userId])
 }
 
-model License {
-    id            Int       @id @default(autoincrement())
-    license_key   String    @unique
-    product       String    @default("REGIX-Auth")
-    plan          String    @default("basic")
-    duration_days Int       @default(30)
-    max_devices   Int       @default(1)
-    used_devices  String    @default("")
-    hwid          String?
-    status        String    @default("active")
-    expiry_date   DateTime?
-    owner_id      Int       @default(0)
-    created_by    String    @default("admin")
-    created_at    DateTime  @default(now())
-    updated_at    DateTime  @updatedAt
-    last_used_at  DateTime?
-    metadata      String?
+// ============================================================
+// DISCORD ACCOUNT (OAuth linking)
+// ============================================================
+model DiscordAccount {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  discordId     String   @unique
+  username      String?
+  discriminator String?
+  avatarUrl     String?
+  accessToken   String?
+  refreshToken  String?
+  linkedAt      DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([discordId])
 }
 
-model Blacklist {
-    id        Int      @id @default(autoincrement())
-    hwid      String   @unique
-    reason    String   @default("")
-    owner_id  Int      @default(0)
-    createdAt DateTime @default(now())
+// ============================================================
+// PREMIUM KEY MODEL
+// ============================================================
+model PremiumKey {
+  id         String    @id @default(cuid())
+  key        String    @unique
+  duration   Int // Duration in days (0 = lifetime)
+  isLifetime Boolean   @default(false)
+  isRedeemed Boolean   @default(false)
+  redeemedAt DateTime?
+  expiresAt  DateTime? // null for lifetime
+  userId     String?
+  isActive   Boolean   @default(true)
+  isIpLocked Boolean   @default(false)
+  lockedIp   String?
+  createdBy  String // Admin user ID who created this key
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([key])
+  @@index([userId])
 }
 
+// ============================================================
+// LOGIN HISTORY
+// ============================================================
+model LoginHistory {
+  id         String   @id @default(cuid())
+  userId     String
+  ip         String?
+  method     String // "email", "discord", "hwid", "api"
+  userAgent  String?
+  success    Boolean
+  failReason String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ============================================================
+// BLACKLIST / BAN HISTORY
+// ============================================================
+model BlacklistEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  reason        String?
+  blacklistedBy String // Admin user ID
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
 model AuditLog {
-    id        Int      @id @default(autoincrement())
-    action    String
-    user_id   Int?
-    api_id    Int?
-    key_id    Int?
-    ip        String?
-    details   String?
-    createdAt DateTime @default(now())
-}
+  id        String   @id @default(cuid())
+  action    String // e.g. "USER_CREATED", "KEY_GENERATED", "USER_BLACKLISTED"
+  userId    String?
+  details   String? // JSON string with details
+  ip        String?
+  createdAt DateTime @default(now())
 
-model ApiUsage {
-    id        Int      @id @default(autoincrement())
-    api_id    Int
-    endpoint  String
-    ip        String?
-    success   Boolean
-    createdAt DateTime @default(now())
-}
-
-model HwidReset {
-    id         Int      @id @default(autoincrement())
-    userId     Int
-    oldHwid    String
-    newHwid    String?
-    reason     String   @default("")
-    status     String   @default("pending")
-    approvedBy Int?
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt
-    user       AppUser  @relation(fields: [userId], references: [id])
-}
-
-model Ticket {
-    id         Int           @id @default(autoincrement())
-    title      String
-    category   String        @default("general")
-    priority   String        @default("medium")
-    status     String        @default("open")
-    createdBy  Int
-    assignedTo Int?
-    createdAt  DateTime      @default(now())
-    updatedAt  DateTime      @updatedAt
-    creator    PanelUser     @relation("TicketCreator", fields: [createdBy], references: [id])
-    assignee   PanelUser?    @relation("TicketAssignee", fields: [assignedTo], references: [id])
-    replies    TicketReply[]
-}
-
-model TicketReply {
-    id        Int       @id @default(autoincrement())
-    ticketId  Int
-    userId    Int
-    message   String
-    isStaff   Boolean   @default(false)
-    createdAt DateTime  @default(now())
-    ticket    Ticket    @relation(fields: [ticketId], references: [id])
-    user      PanelUser @relation(fields: [userId], references: [id])
-}
-
-model DiscordLink {
-    id           Int      @id @default(autoincrement())
-    discordId    String   @unique
-    panelUserId  Int?
-    appUserId    Int?
-    username     String
-    accessToken  String?
-    refreshToken String?
-    linkedAt     DateTime @default(now())
+  @@index([action])
+  @@index([createdAt])
 }
