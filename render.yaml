@@ -13,16 +13,16 @@ services:
       export PATH="$BUN_INSTALL/bin:$PATH"
       bun install
       bun run migrate
-      bun run prisma/seed.ts
+      bunx prisma db seed
       bun run build
     startCommand: |
       export BUN_INSTALL="/opt/render/.bun"
       export PATH="$BUN_INSTALL/bin:$PATH"
-      bun start
+      next start
     healthCheckPath: /
     envVars:
       - key: NODE_VERSION
-        value: 24
+        value: "24"
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
@@ -30,28 +30,37 @@ services:
       - key: CHECKPOINT_DISABLE
         value: "1"
       - key: NEXT_PUBLIC_APP_URL
-        value: https://regix-auth.onrender.com
+        fromService:
+          name: regix-auth
+          type: web
+          property: hostport
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
       - key: SESSION_SECRET
         generateValue: true
+      - key: RESEND_API_KEY
+        sync: false
       - key: NEXT_PUBLIC_DISCORD_CLIENT_ID
-        value: ""
+        sync: false
       - key: DISCORD_CLIENT_SECRET
-        value: ""
+        sync: false
       - key: DISCORD_REDIRECT_URI
-        value: https://regix-auth.onrender.com/api/auth/discord/callback
+        sync: false
       - key: DISCORD_BOT_TOKEN
-        value: ""
+        sync: false
       - key: DISCORD_CLIENT_ID
-        value: ""
+        sync: false
       - key: DISCORD_GUILD_ID
-        value: ""
+        sync: false
+      - key: DISCORD_ADMIN_ROLE_ID
+        sync: false
+      - key: DISCORD_MOD_ROLE_ID
+        sync: false
       - key: ADMIN_USERNAME
-        value: owner
+        value: ceojahid
       - key: ADMIN_PASSWORD
         value: RegixAdmin123!
       - key: ADMIN_EMAIL
-        value: admin@regix-auth.com
+        value: jahidekbalmallick@gmail.com
