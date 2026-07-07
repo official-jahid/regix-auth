@@ -7,22 +7,19 @@ import {
   GlobeIcon,
   KeyIcon,
   SettingsIcon,
-  ShieldIcon,
-  UsersIcon,
+  TerminalIcon,
 } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Documentation - Regix Auth",
-  description:
-    "Complete documentation for Regix Auth - Universal authentication & authorization system",
+  description: "Complete documentation for Regix Auth authentication system",
 };
 
 const DocsPage = () => {
   return (
     <div className="mx-auto max-w-4xl space-y-12 p-6 pt-24">
-      {/* Header */}
       <div className="space-y-4">
         <Link
           href="/"
@@ -35,7 +32,6 @@ const DocsPage = () => {
         </p>
       </div>
 
-      {/* Quick Start */}
       <Section
         icon={BookOpenIcon}
         title="Quick Start">
@@ -43,176 +39,193 @@ const DocsPage = () => {
           <h3 className="font-semibold">Prerequisites</h3>
           <ul className="list-disc space-y-1 pl-5">
             <li>Node.js 24+ and Bun</li>
-            <li>SQLite (included, no setup needed)</li>
-            <li>Discord Application (for OAuth & Bot features - optional)</li>
+            <li>SQLite (included)</li>
+            <li>Discord Application (optional)</li>
           </ul>
-
           <h3 className="font-semibold">Installation</h3>
           <pre className="bg-muted overflow-x-auto rounded-lg p-4">
-            <code>{`# Clone the repository
-git clone https://github.com/official-jahid/regix-auth.git
+            <code>{`git clone https://github.com/official-jahid/regix-auth.git
 cd regix-auth
-
-# Install dependencies
 bun install
-
-# Copy environment file
 cp .env.example .env
-# Edit .env with your settings
-
-# Setup database and seed admin
 bun run migrate
-bun run prisma/seed.ts
-
-# Start development server
-bun run dev`}</code>
+bun run db:seed
+bun run dev  # Starts web + Discord bot`}</code>
           </pre>
-
-          <h3 className="font-semibold">Default Admin Account</h3>
+          <h3 className="font-semibold">Default Admin</h3>
           <div className="bg-muted rounded-lg p-4">
             <p>
-              <strong>Email:</strong> admin@regix-auth.com
+              <strong>Email:</strong> jahidekbalmallick@gmail.com
             </p>
             <p>
-              <strong>Username:</strong> owner
-            </p>
-            <p>
-              <strong>Password:</strong> RegixAdmin123!
+              <strong>Username:</strong> ceojahid
             </p>
             <p className="text-destructive mt-2 text-sm">
-              ⚠️ Change the default password immediately after first login!
+              ⚠️ Change password on first login!
             </p>
           </div>
         </div>
       </Section>
 
-      {/* Authentication Methods */}
       <Section
-        icon={ShieldIcon}
-        title="Authentication Methods">
-        <div className="space-y-6">
-          {/* Email/Password */}
-          <div>
-            <h3 className="mb-2 font-semibold">📧 Email & Password</h3>
-            <p className="text-muted-foreground mb-2 text-sm">
-              Traditional username/email + password authentication with bcryptjs
-              hashing.
-            </p>
-            <p className="text-muted-foreground text-sm">
-              Users can register at <code>/auth/register</code> and login at{" "}
-              <code>/auth</code>. Passwords are hashed with 12 salt rounds.
-            </p>
-          </div>
-
-          {/* Discord OAuth */}
-          <div>
-            <h3 className="mb-2 font-semibold">💬 Discord OAuth2</h3>
-            <p className="text-muted-foreground mb-2 text-sm">
-              Full Discord OAuth2 integration for login and account linking.
-            </p>
-            <h4 className="mb-1 text-sm font-medium">Setup:</h4>
-            <ol className="text-muted-foreground list-decimal space-y-1 pl-5 text-sm">
-              <li>
-                Go to{" "}
-                <a
-                  href="https://discord.com/developers/applications"
-                  className="text-primary hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer">
-                  Discord Developer Portal
-                </a>
-              </li>
-              <li>Create an application and copy the Client ID</li>
-              <li>
-                Set <code>NEXT_PUBLIC_DISCORD_CLIENT_ID</code> and{" "}
-                <code>DISCORD_CLIENT_SECRET</code> in .env
-              </li>
-              <li>
-                Add redirect URI:{" "}
-                <code>https://yourdomain.com/api/auth/discord/callback</code>
-              </li>
-            </ol>
-          </div>
-
-          {/* HWID/SID */}
-          <div>
-            <h3 className="mb-2 font-semibold">💻 HWID / SID Authentication</h3>
-            <p className="text-muted-foreground mb-2 text-sm">
-              Hardware-based authentication for desktop applications, Windows
-              Forms, DLLs, and terminal apps.
-            </p>
-            <p className="text-muted-foreground text-sm">
-              External apps send HWID/SID payloads to{" "}
-              <code>/api/device/verify</code> for validation. Users can update
-              their SID (24h cooldown) and IP from the dashboard.
-            </p>
-          </div>
-
-          {/* IP Authentication */}
-          <div>
-            <h3 className="mb-2 font-semibold">🌐 IP Authentication</h3>
-            <p className="text-muted-foreground mb-2 text-sm">
-              Auto-detect user IP on login and store for security auditing.
-              Admins can enable IP-locking on premium keys.
-            </p>
-            <p className="text-muted-foreground text-sm">
-              Users can update their IP from the dashboard with auto-detect
-              button.
-            </p>
-          </div>
-        </div>
-      </Section>
-
-      {/* API Reference */}
-      <Section
-        icon={CodeIcon}
-        title="API Reference">
-        <p className="text-muted-foreground mb-6 text-sm">
-          REST API endpoints for external application integration
+        icon={TerminalIcon}
+        title="Service API (Automation)">
+        <p className="text-muted-foreground mb-4 text-sm">
+          Use this endpoint for PowerShell scripts, Cloudflare Workers, CI/CD
+          pipelines, or any CLI-automation. Requires <code>SECRET_KEY</code> for
+          server-to-server authentication.
         </p>
 
         <div className="space-y-4">
+          <div className="bg-muted border-primary rounded-lg border-l-4 p-4">
+            <h3 className="mb-2 font-semibold">PowerShell Example</h3>
+            <pre className="bg-background overflow-x-auto rounded p-3 text-xs">
+              <code>{`$secretKey = "RegixSecretKey2024!@#$%^"
+$body = @{
+  action = "verify"
+  secretKey = $secretKey
+  username = "ceojahid"
+  password = "RegixAdmin123!"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:3000/api/service/auth" \\
+  -Method POST -Body $body -ContentType "application/json"`}</code>
+            </pre>
+          </div>
+
+          <div className="bg-muted rounded-lg border-l-4 border-orange-500 p-4">
+            <h3 className="mb-2 font-semibold">Cloudflare Worker Example</h3>
+            <pre className="bg-background overflow-x-auto rounded p-3 text-xs">
+              <code>{`export default {
+  async fetch(request, env) {
+    const auth = await fetch("https://yourdomain.com/api/service/auth", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "checkLicense",
+        secretKey: env.SECRET_KEY,
+        licenseKey: request.headers.get("X-License-Key")
+      })
+    });
+    const result = await auth.json();
+    if (!result.valid) return Response.json({ error: "Invalid license" }, { status: 403 });
+    // Proceed with your worker logic...
+  }
+}`}</code>
+            </pre>
+          </div>
+
+          <div className="bg-muted rounded-lg border-l-4 border-green-500 p-4">
+            <h3 className="mb-2 font-semibold">cURL Example</h3>
+            <pre className="bg-background overflow-x-auto rounded p-3 text-xs">
+              <code>{`curl -X POST http://localhost:3000/api/service/auth \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "action": "verify",
+    "secretKey": "RegixSecretKey2024!@#$%^",
+    "username": "ceojahid",
+    "password": "RegixAdmin123!",
+    "licenseKey": "ABCDE-12345-FGHIJ-67890"
+  }'`}</code>
+            </pre>
+          </div>
+        </div>
+
+        <h3 className="mt-6 mb-2 font-semibold">Available Actions</h3>
+        <div className="space-y-3">
+          <ApiEndpoint
+            method="POST"
+            path="/api/service/auth"
+            body={`{ "action": "verify", "secretKey": "...", "username": "...", "password": "...", "licenseKey"?: "..." }`}
+            description="Verify user credentials and optionally validate a license key. Auto-redeems unredeemed keys."
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/service/auth"
+            body={`{ "action": "registerDevice", "secretKey": "...", "username": "...", "password": "...", "hwid": "...", "sid"?: "..." }`}
+            description="Register or update a device by HWID for the authenticated user."
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/service/auth"
+            body={`{ "action": "checkLicense", "secretKey": "...", "licenseKey": "..." }`}
+            description="Check the validity and status of a license key without authentication."
+          />
+        </div>
+      </Section>
+
+      <Section
+        icon={CodeIcon}
+        title="REST API Reference">
+        <p className="text-muted-foreground mb-4 text-sm">
+          Session-based API endpoints for web integration.
+        </p>
+        <div className="space-y-3">
           <ApiEndpoint
             method="POST"
             path="/api/auth/login"
-            description="Authenticate with email/username and password"
-            body={`{ "email": "user@example.com", "username": "user", "password": "..." }`}
+            description="Login with email/username + password"
+            body={`{ "email": "...", "username": "...", "password": "..." }`}
           />
           <ApiEndpoint
             method="POST"
             path="/api/auth/register"
-            description="Create a new user account"
+            description="Create a new account"
             body={`{ "email": "...", "username": "...", "password": "...", "displayName": "..." }`}
           />
           <ApiEndpoint
             method="POST"
+            path="/api/auth/send-otp"
+            description="Send email OTP for verification or password reset"
+            body={`{ "email": "...", "type": "EMAIL_VERIFICATION"|"PASSWORD_RESET" }`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/auth/verify-otp"
+            description="Verify an OTP code"
+            body={`{ "email": "...", "code": "123456", "type": "EMAIL_VERIFICATION"|"PASSWORD_RESET" }`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/auth/forgot-password"
+            description="Send password reset OTP"
+            body={`{ "email": "..." }`}
+          />
+          <ApiEndpoint
+            method="POST"
+            path="/api/auth/reset-password"
+            description="Reset password with OTP"
+            body={`{ "email": "...", "code": "123456", "newPassword": "..." }`}
+          />
+          <ApiEndpoint
+            method="POST"
             path="/api/auth/logout"
-            description="Destroy current session"
+            description="Destroy session"
             auth
           />
           <ApiEndpoint
             method="GET"
             path="/api/auth/session"
-            description="Get current user session info"
+            description="Get current user session"
             auth
           />
           <ApiEndpoint
             method="POST"
             path="/api/device/register"
-            description="Register a new device (HWID/SID)"
+            description="Register a device (HWID/SID)"
             auth
             body={`{ "hwid": "...", "sid": "..." }`}
           />
           <ApiEndpoint
             method="POST"
             path="/api/device/verify"
-            description="Verify HWID/SID for external app authentication"
+            description="Verify HWID/SID for external app auth"
             body={`{ "username": "...", "hwid": "...", "sid": "...", "licenseKey": "..." }`}
           />
           <ApiEndpoint
             method="POST"
             path="/api/keys/generate"
-            description="Generate premium license keys (Admin only)"
+            description="Generate premium keys (Admin)"
             auth
             body={`{ "count": 1, "duration": 30, "isLifetime": false }`}
           />
@@ -223,239 +236,145 @@ bun run dev`}</code>
             auth
             body={`{ "key": "ABCDE-12345-FGHIJ-67890" }`}
           />
+          <ApiEndpoint
+            method="PATCH"
+            path="/api/user/update-profile"
+            description="Update display name, avatar, username"
+            auth
+            body={`{ "displayName": "...", "avatarUrl": "...", "username": "..." }`}
+          />
+          <ApiEndpoint
+            method="PATCH"
+            path="/api/user/update-credentials"
+            description="Change password"
+            auth
+            body={`{ "currentPassword": "...", "newPassword": "..." }`}
+          />
         </div>
       </Section>
 
-      {/* Premium Keys */}
-      <Section
-        icon={KeyIcon}
-        title="Premium License Keys">
-        <div className="space-y-4">
-          <p className="text-muted-foreground text-sm">
-            Premium keys allow users to unlock premium features. Keys are
-            generated by admins and redeemed by users.
-          </p>
-
-          <h3 className="font-semibold">Key Features</h3>
-          <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-            <li>
-              Configurable durations: 1 Day, 7 Days, 30 Days, 90 Days, 1 Year,
-              Lifetime
-            </li>
-            <li>Bulk generation (up to 100 keys at once)</li>
-            <li>IP-locking option to prevent sharing</li>
-            <li>Admin can activate/deactivate/delete keys</li>
-            <li>
-              Key format: <code>XXXXX-XXXXX-XXXXX-XXXXX</code>
-            </li>
-          </ul>
-
-          <h3 className="font-semibold">Admin Key Generation</h3>
-          <p className="text-muted-foreground text-sm">
-            Navigate to <code>/dashboard/admin</code> → License Keys tab →
-            Generate License Keys section. Configure count, duration, and
-            lifetime option.
-          </p>
-        </div>
-      </Section>
-
-      {/* Discord Bot */}
       <Section
         icon={BotIcon}
         title="Discord Bot">
         <div className="space-y-4">
           <p className="text-muted-foreground text-sm">
-            Built-in Discord bot with slash commands for account management.
+            Built-in Discord bot runs together with the web server.
           </p>
-
-          <h3 className="font-semibold">Setup</h3>
+          <h3 className="font-semibold">Start</h3>
           <pre className="bg-muted overflow-x-auto rounded-lg p-4">
-            <code>{`cd bot
-bun install
-# Set DISCORD_BOT_TOKEN in .env
-bun dev`}</code>
+            <code>{`bun run dev     # Web + Bot together
+bun run bot     # Bot only`}</code>
           </pre>
-
-          <h3 className="font-semibold">Commands</h3>
-          <div className="space-y-2">
-            <div className="bg-muted rounded-lg p-3">
-              <p className="font-mono text-sm">/auth link {"<email>"}</p>
-              <p className="text-muted-foreground text-xs">
-                Link your Discord account to Regix Auth
-              </p>
-            </div>
-            <div className="bg-muted rounded-lg p-3">
-              <p className="font-mono text-sm">/auth status</p>
-              <p className="text-muted-foreground text-xs">
-                Check your account status and premium info
-              </p>
-            </div>
-            <div className="bg-muted rounded-lg p-3">
-              <p className="font-mono text-sm">/auth premium</p>
-              <p className="text-muted-foreground text-xs">
-                View your premium subscription details
-              </p>
-            </div>
-            <div className="bg-muted rounded-lg p-3">
-              <p className="font-mono text-sm">/ping</p>
-              <p className="text-muted-foreground text-xs">Check bot latency</p>
-            </div>
+          <h3 className="font-semibold">Admin Commands</h3>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              "/genkey",
+              "/genlicense",
+              "/genuser",
+              "/blacklist",
+              "/unblacklist",
+              "/whitelist",
+              "/unwhitelist",
+              "/reset",
+            ].map((cmd) => (
+              <div
+                key={cmd}
+                className="bg-muted rounded-lg p-2 font-mono text-xs">
+                {cmd}
+              </div>
+            ))}
+          </div>
+          <h3 className="font-semibold">User Commands</h3>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {["/userinfo", "/keyinfo", "/licenseinfo", "/stats", "/ping"].map(
+              (cmd) => (
+                <div
+                  key={cmd}
+                  className="bg-muted rounded-lg p-2 font-mono text-xs">
+                  {cmd}
+                </div>
+              ),
+            )}
           </div>
         </div>
       </Section>
 
-      {/* Admin Guide */}
+      <Section
+        icon={KeyIcon}
+        title="Premium License Keys">
+        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
+          <li>
+            Configurable durations: 1 Day, 7 Days, 30 Days, 90 Days, 1 Year,
+            Lifetime
+          </li>
+          <li>Bulk generation (up to 100 keys at once)</li>
+          <li>IP-locking to prevent sharing</li>
+          <li>
+            Key format: <code>XXXXX-XXXXX-XXXXX-XXXXX</code>
+          </li>
+          <li>
+            Admin panel at <code>/dashboard/admin</code>
+          </li>
+        </ul>
+      </Section>
+
       <Section
         icon={SettingsIcon}
         title="Admin Guide">
-        <div className="space-y-4">
-          <p className="text-muted-foreground text-sm">
-            Access the admin panel at <code>/dashboard/admin</code>.
-          </p>
-
-          <h3 className="font-semibold">Features</h3>
-          <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-            <li>
-              <strong>User Management:</strong> View all users, their roles,
-              devices, premium status, login history
-            </li>
-            <li>
-              <strong>User Actions:</strong> Blacklist/unblacklist,
-              activate/deactivate, change roles (USER/MOD/ADMIN), delete users
-            </li>
-            <li>
-              <strong>Key Management:</strong> Generate single/bulk keys, view
-              all keys, activate/deactivate/delete keys
-            </li>
-            <li>
-              <strong>Dashboard Stats:</strong> Total users, active users,
-              blacklisted users, key statistics
-            </li>
-          </ul>
-
-          <h3 className="font-semibold">Admin Credentials</h3>
-          <p className="text-muted-foreground text-sm">
-            The default admin account is created during database seeding.
-            Credentials are in your <code>.env</code> file.
-          </p>
-        </div>
+        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
+          <li>
+            <strong>User Management:</strong> View, blacklist, activate, change
+            roles, delete
+          </li>
+          <li>
+            <strong>Key Management:</strong> Generate, view, activate/deactivate
+            keys
+          </li>
+          <li>
+            <strong>Dashboard Stats:</strong> Total users, active, blacklisted,
+            keys
+          </li>
+          <li>
+            Access at <code>/dashboard/admin</code>
+          </li>
+        </ul>
       </Section>
 
-      {/* User Guide */}
-      <Section
-        icon={UsersIcon}
-        title="User Dashboard Guide">
-        <div className="space-y-4">
-          <p className="text-muted-foreground text-sm">
-            After logging in, users are redirected to <code>/dashboard</code>.
-          </p>
-
-          <h3 className="font-semibold">Dashboard Sections</h3>
-          <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-            <li>
-              <strong>Profile Header:</strong> Avatar, display name, role badge,
-              premium status
-            </li>
-            <li>
-              <strong>Info Cards:</strong> Provider, status (granted/denied),
-              premium status, current IP
-            </li>
-            <li>
-              <strong>Discord Account:</strong> Linked Discord info with ID copy
-              button
-            </li>
-            <li>
-              <strong>Update SID:</strong> Change SID with 24-hour cooldown
-              countdown
-            </li>
-            <li>
-              <strong>Update IP:</strong> Change IP with auto-detect button
-            </li>
-            <li>
-              <strong>Update Discord:</strong> Link/change Discord user ID
-            </li>
-            <li>
-              <strong>API Endpoints:</strong> Documentation of available API
-              endpoints for external apps
-            </li>
-          </ul>
-        </div>
-      </Section>
-
-      {/* Production Deployment */}
       <Section
         icon={GlobeIcon}
         title="Production Deployment">
-        <div className="space-y-4">
-          <h3 className="font-semibold">Environment Variables</h3>
-          <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
-            <li>
-              Set <code>NODE_ENV=production</code>
-            </li>
-            <li>
-              Generate strong random strings for <code>SECRET_KEY</code>,{" "}
-              <code>JWT_SECRET</code>, <code>SESSION_SECRET</code>
-            </li>
-            <li>
-              Update <code>NEXT_PUBLIC_APP_URL</code> to your domain
-            </li>
-            <li>
-              Update <code>DISCORD_REDIRECT_URI</code> for production
-            </li>
-          </ul>
-
-          <h3 className="font-semibold">Build & Deploy</h3>
-          <pre className="bg-muted overflow-x-auto rounded-lg p-4">
-            <code>{`# Production build
-bun run build
-
-# Or full production check
-bun run prod
-
-# The output will be in the .next folder
-# Deploy using: next start`}</code>
-          </pre>
-
-          <div className="bg-muted rounded-lg border-l-4 border-yellow-500 p-4">
-            <p className="text-sm font-medium">⚠️ Security Notes</p>
-            <ul className="text-muted-foreground mt-2 list-disc space-y-1 pl-5 text-xs">
-              <li>
-                Never commit <code>.env</code> file to version control
-              </li>
-              <li>Use strong, unique passwords for admin account</li>
-              <li>Enable HTTPS in production</li>
-              <li>Regularly rotate JWT and session secrets</li>
-              <li>Monitor audit logs for suspicious activity</li>
-              <li>Set rate limiting on API endpoints for production</li>
-            </ul>
-          </div>
-        </div>
+        <ul className="text-muted-foreground list-disc space-y-1 pl-5 text-sm">
+          <li>
+            Set <code>NODE_ENV=production</code>
+          </li>
+          <li>
+            Generate strong random strings for <code>SECRET_KEY</code>,{" "}
+            <code>JWT_SECRET</code>, <code>SESSION_SECRET</code>
+          </li>
+          <li>
+            Update <code>NEXT_PUBLIC_APP_URL</code> to your domain
+          </li>
+          <li>
+            <code>bun run build && next start</code>
+          </li>
+          <li>Enable HTTPS and rate limiting for production</li>
+        </ul>
       </Section>
 
-      {/* Links */}
       <Section
         icon={FileTextIcon}
-        title="Useful Links">
+        title="Links">
         <div className="space-y-2">
           <Link
             href="https://github.com/official-jahid/regix-auth"
-            className="text-primary flex items-center gap-2 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer">
+            className="text-primary block hover:underline"
+            target="_blank">
             GitHub Repository
           </Link>
           <Link
-            href="https://regix-auth.onrender.com"
-            className="text-primary flex items-center gap-2 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer">
-            Live Demo
-          </Link>
-          <Link
             href="https://github.com/official-jahid/regix-auth/issues"
-            className="text-primary flex items-center gap-2 hover:underline"
-            target="_blank"
-            rel="noopener noreferrer">
+            className="text-primary block hover:underline"
+            target="_blank">
             Report an Issue
           </Link>
         </div>
@@ -491,35 +410,35 @@ function ApiEndpoint({
   auth,
   body,
 }: {
-  method: "GET" | "POST" | "PATCH" | "DELETE";
+  method: string;
   path: string;
   description: string;
   auth?: boolean;
   body?: string;
 }) {
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     GET: "text-blue-500",
     POST: "text-green-500",
     PATCH: "text-yellow-500",
     DELETE: "text-red-500",
   };
-
   return (
-    <div className="bg-muted rounded-lg p-4">
-      <div className="flex items-center gap-2">
-        <span className={`font-mono text-sm font-bold ${colorMap[method]}`}>
+    <div className="bg-muted rounded-lg p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          className={`font-mono text-xs font-bold ${colorMap[method] || "text-gray-500"}`}>
           {method}
         </span>
-        <span className="font-mono text-sm">{path}</span>
+        <span className="font-mono text-xs">{path}</span>
         {auth && (
-          <span className="rounded bg-yellow-500/10 px-2 py-0.5 text-[10px] text-yellow-500">
+          <span className="rounded bg-yellow-500/10 px-1.5 py-0.5 text-[10px] text-yellow-500">
             AUTH
           </span>
         )}
       </div>
       <p className="text-muted-foreground mt-1 text-xs">{description}</p>
       {body && (
-        <pre className="bg-background mt-2 overflow-x-auto rounded p-2 text-xs">
+        <pre className="bg-background mt-1 overflow-x-auto rounded p-2 text-[10px]">
           <code>Body: {body}</code>
         </pre>
       )}

@@ -11,14 +11,14 @@ const HomePage = () => {
   return (
     <div className="flex min-h-dvh flex-col">
       {/* Hero Section */}
-      <section className="flex flex-1 items-center justify-center px-4">
+      <section className="flex flex-1 items-center justify-center px-4 pt-20">
         <div className="mx-auto max-w-3xl text-center">
-          <div className="bg-primary/10 text-primary mb-6 inline-block rounded-full px-4 py-1.5 text-sm font-medium">
+          <div className="bg-primary/10 text-primary mb-8 inline-block rounded-full px-4 py-1.5 text-sm font-medium">
             🔐 Version 1.0.0
           </div>
           <h1 className="mb-6 text-5xl font-bold tracking-tight sm:text-6xl">
             Regix{" "}
-            <span className="from-primary to-primary/60 bg-gradient-to-r bg-clip-text text-transparent">
+            <span className="from-primary to-primary/60 bg-linear-to-r bg-clip-text text-transparent">
               Auth
             </span>
           </h1>

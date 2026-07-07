@@ -3,6 +3,7 @@ import { serverEnv } from "@/lib/env/serverEnv";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
 
 const SALT_ROUNDS = 12;
 const JWT_EXPIRY = "7d";
@@ -146,9 +147,34 @@ export function generatePremiumKey(): string {
 // DETECT IP FROM REQUEST
 // ============================================================
 export function detectIp(headers: Headers): string {
+  // Try x-forwarded-for first (used by proxies, Vercel, etc.)
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
-  return headers.get("x-real-ip") ?? "127.0.0.1";
+
+  // Try x-real-ip (used by nginx, some proxies)
+  const realIp = headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
+  // Try cf-connecting-ip (Cloudflare)
+  const cfIp = headers.get("cf-connecting-ip");
+  if (cfIp) return cfIp.trim();
+
+  // Try true-client-ip (Akamai, some CDNs)
+  const trueClientIp = headers.get("true-client-ip");
+  if (trueClientIp) return trueClientIp.trim();
+
+  return "127.0.0.1";
+}
+
+// ============================================================
+// DETECT IP FROM NEXTREQUEST (preferred - uses Next.js built-in)
+// ============================================================
+export function detectIpFromRequest(request: NextRequest): string {
+  // Next.js App Router provides request.ip directly behind proxies
+  if ((request as any).ip) return (request as any).ip as string;
+
+  // Fallback to header-based detection
+  return detectIp(request.headers);
 }
 
 // ============================================================
@@ -184,4 +210,75 @@ export async function logAudit(
   await prisma.auditLog.create({
     data: { action, userId, details, ip },
   });
+}
+
+// ============================================================
+// OTP HELPERS (Email verification & Password reset)
+// ============================================================
+export function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+export async function createOtp(
+  userId: string,
+  email: string,
+  type: "EMAIL_VERIFICATION" | "PASSWORD_RESET",
+): Promise<string> {
+  // Invalidate any existing unused OTPs of the same type for this user
+  await prisma.otpCode.updateMany({
+    where: {
+      userId,
+      type,
+      usedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    data: {
+      expiresAt: new Date(0), // Expire them immediately
+    },
+  });
+
+  const code = generateOtp();
+  const expiresAt = new Date();
+  expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10 minute expiry
+
+  await prisma.otpCode.create({
+    data: {
+      userId,
+      email,
+      code,
+      type,
+      expiresAt,
+    },
+  });
+
+  return code;
+}
+
+export async function verifyOtp(
+  email: string,
+  code: string,
+  type: "EMAIL_VERIFICATION" | "PASSWORD_RESET",
+): Promise<{ valid: boolean; userId?: string; error?: string }> {
+  const otp = await prisma.otpCode.findFirst({
+    where: {
+      email,
+      code,
+      type,
+      usedAt: null,
+      expiresAt: { gt: new Date() },
+    },
+    include: { user: true },
+  });
+
+  if (!otp) {
+    return { valid: false, error: "Invalid or expired OTP code" };
+  }
+
+  // Mark OTP as used
+  await prisma.otpCode.update({
+    where: { id: otp.id },
+    data: { usedAt: new Date() },
+  });
+
+  return { valid: true, userId: otp.userId };
 }
