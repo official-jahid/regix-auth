@@ -1,0 +1,57 @@
+# Render Blueprint Configuration for Regix Auth
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: regix-auth
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: |
+      curl -fsSL https://bun.sh/install | bash
+      export BUN_INSTALL="/opt/render/.bun"
+      export PATH="$BUN_INSTALL/bin:$PATH"
+      bun install
+      bun run migrate
+      bun run prisma/seed.ts
+      bun run build
+    startCommand: |
+      export BUN_INSTALL="/opt/render/.bun"
+      export PATH="$BUN_INSTALL/bin:$PATH"
+      bun start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prisma/dev.db
+      - key: CHECKPOINT_DISABLE
+        value: "1"
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://regix-auth.onrender.com
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NEXT_PUBLIC_DISCORD_CLIENT_ID
+        value: ""
+      - key: DISCORD_CLIENT_SECRET
+        value: ""
+      - key: DISCORD_REDIRECT_URI
+        value: https://regix-auth.onrender.com/api/auth/discord/callback
+      - key: DISCORD_BOT_TOKEN
+        value: ""
+      - key: DISCORD_CLIENT_ID
+        value: ""
+      - key: DISCORD_GUILD_ID
+        value: ""
+      - key: ADMIN_USERNAME
+        value: owner
+      - key: ADMIN_PASSWORD
+        value: RegixAdmin123!
+      - key: ADMIN_EMAIL
+        value: admin@regix-auth.com
