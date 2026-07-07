@@ -1,6 +1,6 @@
 import {
   createSession,
-  detectIp,
+  detectIpFromRequest,
   logAudit,
   logLogin,
   setAuthCookie,
@@ -12,7 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const { email, username, password } = await request.json();
-    const ip = detectIp(request.headers);
+    const ip = detectIpFromRequest(request);
     const userAgent = request.headers.get("user-agent") ?? undefined;
 
     if ((!email && !username) || !password) {

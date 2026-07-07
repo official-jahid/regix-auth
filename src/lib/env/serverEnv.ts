@@ -11,6 +11,7 @@ export const serverEnv = createEnv({
     JWT_SECRET: z.string().min(10),
     SESSION_SECRET: z.string().min(10),
     SECRET_KEY: z.string().min(5),
+    RESEND_API_KEY: z.string().min(1, "Resend API key is required"),
     DISCORD_CLIENT_ID: z.string().optional(),
     DISCORD_CLIENT_SECRET: z.string().optional(),
     DISCORD_REDIRECT_URI: z.string().url().optional(),

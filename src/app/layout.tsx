@@ -1,6 +1,11 @@
-import Header from "@/components/Header/Header";
+import { AppSidebar } from "@/components/Navigation/AppSidebar";
 import ThemeProvider from "@/components/Providers/ThemeProvider";
 import ToastProvider from "@/components/Providers/ToastProvider";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/shadcnui/sidebar";
 import { notoSansHeading, nunitoSans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
@@ -26,9 +31,17 @@ const RootLayout = ({ children }: RootLayoutProps) => {
           attribute={"class"}
           defaultTheme="dark"
           enableSystem={false}>
-          <Header />
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="bg-background/80 sticky top-0 z-40 flex h-14 items-center gap-2 border-b px-4 backdrop-blur-sm">
+                <SidebarTrigger className="-ml-2" />
+                <span className="text-sm font-semibold">Regix Auth</span>
+              </header>
+              <main className="flex-1">{children}</main>
+            </SidebarInset>
+          </SidebarProvider>
           <ToastProvider />
-          <main className="mx-auto min-h-dvh max-w-7xl">{children}</main>
         </ThemeProvider>
       </body>
     </html>
