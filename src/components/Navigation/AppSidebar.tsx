@@ -1,5 +1,6 @@
 "use client";
 
+import ThemeToggleButton from "@/components/Buttons/ThemeToggleButton";
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +17,7 @@ import {
 } from "@/components/shadcnui/sidebar";
 import {
   BookOpenIcon,
+  GlobeIcon,
   HomeIcon,
   KeyIcon,
   LayoutDashboardIcon,
@@ -127,6 +129,15 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={isActive("/docs-bn")}
+                      onClick={() => router.push("/docs-bn")}>
+                      <GlobeIcon />
+                      <span>বাংলা ডক্স</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
                   {isAdmin && (
                     <SidebarMenuItem>
                       <SidebarMenuButton
@@ -170,18 +181,21 @@ export function AppSidebar() {
 
       <SidebarSeparator />
 
-      {authenticated && (
-        <SidebarFooter>
-          <SidebarMenu>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem className="flex justify-center">
+            <ThemeToggleButton />
+          </SidebarMenuItem>
+          {authenticated && (
             <SidebarMenuItem>
               <SidebarMenuButton onClick={handleLogout}>
                 <LogOutIcon />
                 <span>Logout</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      )}
+          )}
+        </SidebarMenu>
+      </SidebarFooter>
 
       <SidebarRail />
     </Sidebar>

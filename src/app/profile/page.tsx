@@ -118,9 +118,9 @@ const ProfilePage = () => {
   if (!profile) return null;
 
   return (
-    <section className="flex min-h-dvh items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center text-2xl font-semibold">
+    <section className="flex min-h-dvh items-center justify-center px-4 py-8">
+      <Card className="w-full max-w-sm sm:max-w-md">
+        <CardHeader className="text-center text-xl font-semibold sm:text-2xl">
           Profile Settings
         </CardHeader>
 

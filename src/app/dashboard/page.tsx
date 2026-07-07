@@ -234,9 +234,9 @@ const DashboardPage = () => {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6 pt-24">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Avatar className="h-14 w-14 sm:h-16 sm:w-16">
             <AvatarImage
               src={session.discord?.avatarUrl || user.avatarUrl || undefined}
             />
@@ -244,12 +244,14 @@ const DashboardPage = () => {
               {user.displayName?.charAt(0).toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h1 className="text-2xl font-bold">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-xl font-bold sm:text-2xl">
               {user.displayName || user.username}
             </h1>
-            <p className="text-muted-foreground text-sm">{user.email}</p>
-            <div className="mt-1 flex items-center gap-2">
+            <p className="text-muted-foreground truncate text-xs sm:text-sm">
+              {user.email}
+            </p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge variant={isAdmin ? "default" : "secondary"}>
                 {user.role}
               </Badge>
@@ -263,18 +265,20 @@ const DashboardPage = () => {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isAdmin && (
             <Button
               variant="outline"
+              size="sm"
               onClick={() => window.location.assign("/dashboard/admin")}>
-              <ShieldIcon className="mr-2 h-4 w-4" /> Admin Panel
+              <ShieldIcon className="mr-1.5 h-4 w-4" /> Admin Panel
             </Button>
           )}
           <Button
             variant="destructive"
+            size="sm"
             onClick={handleLogout}>
-            <LogOutIcon className="mr-2 h-4 w-4" /> Logout
+            <LogOutIcon className="mr-1.5 h-4 w-4" /> Logout
           </Button>
         </div>
       </div>

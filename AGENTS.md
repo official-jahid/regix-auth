@@ -50,6 +50,23 @@ See existing examples under `src/components/Auth/`.
 - **Remember new learning.** When you discover something non-obvious about this repo — a gotcha, a convention, a fix, a command that wasn't documented — add it back to this file (or a clearly-scoped section) so future sessions benefit. Keep entries concise and high-signal; delete stale ones.
 - **Use available skills and MCPs.** Before writing code for a task that matches a listed skill (e.g. `shadcn`, `prisma-*`, `next-*`, `better-auth-*`, `vercel-react-*`, `zod`, etc.), load it with the `skill` tool. And MCPs that are directly relevant to this stack e.g. **`shadcn`** (local; component registry / audit) and **`better-auth`** (remote; auth setup). Use them when the task fits instead of guessing from training data.
 
+## Discord Bot Architecture
+
+- Entry: `src/bot/start.ts` → `src/bot/index.ts` (`startBot()`). The bot runs as a separate process via `concurrently` in `dev`, `start`, and `prod` scripts.
+- Command auto-discovery: `src/bot/index.ts` recursively loads all `.ts`/`.js` files from `src/bot/commands/`. Supports two formats:
+  - **Single-command files** (e.g., `genkey.ts`, `help.ts`): export `data` (SlashCommandBuilder) + `execute` function.
+  - **Multi-command files** (e.g., `admin.ts`): export named pairs like `genuserData`/`genuserExecute`, `blacklistData`/`blacklistExecute`, etc. The auto-loader discovers any export ending in `Data` that is a `SlashCommandBuilder`, then looks for the matching `${baseName}Execute` function.
+- Commands are registered globally on `clientReady` via REST API (`Routes.applicationCommands`).
+- Bot commands call internal API endpoints under `/api/bot/*` using `SECRET_KEY` as Bearer token auth.
+- **Super Admin:** User ID `1076183559796183242` is hardcoded in `src/bot/utils/permissions.ts` as `SUPER_ADMIN_USER_ID`. This user bypasses all role checks and can run any command. Managed by `isSuperAdmin()`, integrated into `isAdmin()` and `isMod()`.
+- **Bot API endpoints:**
+  - `POST /api/bot/keys/generate` — Generate premium license keys (auth: Bearer `SECRET_KEY`)
+  - `POST /api/bot/keys/info` — Get key/license info
+  - `POST /api/bot/users/manage` — CRUD: `find`, `create`, `blacklist`, `unblacklist`, `reset` (sessions), `resetPassword`, `resetUsername`, `list`
+  - `POST /api/bot/whitelist/modify` — `add`/`remove` whitelist entries
+  - `POST /api/bot/whitelist/check` — Check whitelist status
+- `src/bot/utils/api.ts` wraps all API calls — import functions from here in command files, never call `fetch` directly.
+
 ## Stack at a glance
 
 - Next.js 16.2 + React 19.2 (App Router, Turbopack default, React Compiler on, `typedRoutes` on)
@@ -76,6 +93,19 @@ See existing examples under `src/components/Auth/`.
 - `bun studio` runs headless (`--browser none`); open the printed URL in a browser manually.
 - `generated/**` is gitignored and excluded from ESLint. Do not hand-edit generated files.
 - `build` and `prod` scripts prepend `prisma generate` — running raw `next build` will fail with missing types if the client is stale.
+
+## Database
+
+- **Seed script:** `prisma/seed.ts` (run with `bun run prisma/seed.ts`). Creates default admin account from `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` env vars. Also configured in `prisma.config.ts` as `migrations.seed`.
+- **Reset DB workflow:** Delete `prisma/dev.db`, run `prisma db push`, then `bun run prisma/seed.ts`.
+- **Current default admin:** `ceojahid` / `jahidekbalmallick@gmail.com` / `RegixAdmin123!` (role: ADMIN)
+
+## .env Gotchas
+
+- **NEVER wrap values in quotes.** `dotenv` treats `"value"` as literal quotes in the value. This caused the admin login bug (username stored as `"ceojahid"` instead of `ceojahid`). Always use `KEY=value` format, no quotes.
+- `SECRET_KEY` is used both as the bot API Bearer token and as a general server secret.
+- `RESEND_API_KEY` is required by Zod validation in `serverEnv.ts` (`z.string().min(1)`). If missing, the dev server will throw at startup.
+- `DISCORD_BOT_TOKEN` is optional; if not set, the bot process logs a warning and skips startup gracefully.
 
 ## Env validation (T3 env)
 
@@ -125,3 +155,55 @@ git commit -m @"
 commit message here
 "@
 ```
+
+## Project Plan
+
+### Phase 1 — Foundation (Complete ✅)
+
+- [x] Next.js 16 + React 19 App Router with shadcn/Base UI
+- [x] Prisma 7 + libSQL (SQLite) database schema with User, Session, Device, DiscordAccount, PremiumKey, LoginHistory, BlacklistEntry, AuditLog, OtpCode
+- [x] Authentication (email/password login, Discord OAuth, session management)
+- [x] Admin seed and panel basics
+
+### Phase 2 — Discord Bot (In Progress 🔄)
+
+- [x] Bot auto-discovery command loader
+- [x] Bot API endpoints with SECRET_KEY auth
+- [x] Admin commands: /genkey, /genuser, /genlicense, /blacklist, /unblacklist, /whitelist, /unwhitelist, /reset, /resetpassword, /resetusername
+- [x] Everyone commands: /userinfo, /keyinfo, /licenseinfo, /stats, /help
+- [x] Super admin hardcoded user ID bypass (1076183559796183242)
+- [ ] Verification system (/verification enable, setup_role, setup_channel, type, set_verified, disable, reset)
+- [ ] Anti-nuke system (/settings anti nuke, /setlimit, /setpunishment, /enable, /disable)
+- [ ] Anti-raid and anti-spam dashboard configuration
+
+### Phase 3 — License & HWID System (Partial 🟡)
+
+- [x] Premium key generation, redemption, expiry, lifetime keys
+- [x] Device (HWID/SID) tracking with IP lock support
+- [x] Device verification API endpoint
+- [ ] C++/client-side integration for HWID extraction
+- [ ] License key redemption flow on web dashboard
+
+### Phase 4 — Dashboard & Admin Panel (Partial 🟡)
+
+- [x] Login/Register/Forgot Password pages
+- [x] User dashboard (session info, devices, premium status)
+- [x] Admin user management page
+- [ ] Admin key management page
+- [ ] Analytics/stats dashboard
+- [ ] Discord bot settings dashboard (anti-nuke, anti-raid config)
+
+### Phase 5 — Security Hardening (Not Started ⬜)
+
+- [ ] Rate limiting on auth endpoints
+- [ ] CSRF protection
+- [ ] 2FA via TOTP/OTP
+- [ ] IP allowlisting for admin panel
+- [ ] Audit log viewer in dashboard
+
+### Phase 6 — Production Readiness (Not Started ⬜)
+
+- [ ] Migrations (currently using `prisma db push`; need proper `prisma migrate dev`)
+- [ ] CI/CD pipeline
+- [ ] Production deployment (Vercel/Render)
+- [ ] Monitoring and error tracking

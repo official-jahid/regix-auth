@@ -187,7 +187,7 @@ const LoginPage = () => {
         </CardContent>
 
         <CardFooter className="justify-center gap-1">
-          Don't have an account?
+          Do not have an account?
           <Link
             href="/auth/register"
             className="text-primary hover:underline">

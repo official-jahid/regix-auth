@@ -12,7 +12,9 @@
     "start": "concurrently -n web,bot -c cyan,magenta \"next start\" \"bun run src/bot/start.ts\"",
     "lint": "eslint",
     "prod": "prisma generate && eslint && next build && concurrently -n web,bot \"next start\" \"bun run src/bot/start.ts\"",
-    "migrate": "prisma migrate dev && prisma generate",
+    "migrate": "prisma migrate deploy && prisma generate",
+    "migrate:dev": "prisma migrate dev && prisma generate",
+    "seed": "bun run prisma/seed.ts",
     "studio": "prisma studio --browser none"
   },
   "dependencies": {
