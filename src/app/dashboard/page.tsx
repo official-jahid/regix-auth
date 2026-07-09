@@ -12,6 +12,7 @@ import { Field, FieldError, FieldLabel } from "@/components/shadcnui/field";
 import { Input } from "@/components/shadcnui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+  AlertTriangleIcon,
   CheckIcon,
   CopyIcon,
   GlobeIcon,
@@ -23,7 +24,8 @@ import {
   SmartphoneIcon,
   UserIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { z } from "zod";
@@ -40,6 +42,7 @@ interface SessionData {
     isActive: boolean;
     isBlacklisted: boolean;
     createdAt: string;
+    status: string;
   };
   discord?: {
     discordId: string;
@@ -52,6 +55,8 @@ interface SessionData {
     expiresAt: string | null;
     isIpLocked: boolean;
     lockedIp: string | null;
+    isValid: boolean;
+    reason: string;
   } | null;
   device?: {
     hwid: string;
@@ -74,11 +79,14 @@ const discordSchema = z.object({
 });
 
 const DashboardPage = () => {
+  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [detectedIp, setDetectedIp] = useState("");
   const [sidCooldown, setSidCooldown] = useState(0);
+  const [redeemKey, setRedeemKey] = useState("");
+  const [redeeming, setRedeeming] = useState(false);
+  const fetchStartedRef = useRef(false);
 
   const sidForm = useForm({
     resolver: zodResolver(sidSchema),
@@ -96,58 +104,69 @@ const DashboardPage = () => {
     mode: "all",
   });
 
-  useEffect(() => {
-    fetchSession();
-    detectUserIp();
-  }, []);
-
-  useEffect(() => {
-    if (sidCooldown > 0) {
-      const timer = setInterval(() => setSidCooldown((c) => c - 1), 1000);
-      return () => clearInterval(timer);
-    }
-  }, [sidCooldown]);
-
-  const fetchSession = async () => {
+  const doFetchSession = async (resetLoading = true) => {
+    if (resetLoading) setLoading(true);
     try {
       const res = await fetch("/api/auth/session");
       if (!res.ok) {
-        window.location.assign("/auth");
+        router.push("/auth");
         return;
       }
       const data = await res.json();
       setSession(data);
 
-      // Set SID cooldown if recently updated
       if (data.device?.sidUpdatedAt) {
         const lastUpdate = new Date(data.device.sidUpdatedAt).getTime();
-        const cooldownMs = 24 * 60 * 60 * 1000; // 24 hours
-        const elapsed = Date.now() - lastUpdate;
+        const cooldownMs = 24 * 60 * 60 * 1000;
+        const now = new Date().getTime();
+        const elapsed = now - lastUpdate;
         if (elapsed < cooldownMs) {
           setSidCooldown(Math.floor((cooldownMs - elapsed) / 1000));
         }
       }
     } catch {
-      window.location.assign("/auth");
+      router.push("/auth");
     } finally {
       setLoading(false);
     }
   };
 
+  const sessionFetcher = useRef<Promise<void> | null>(null);
+
+  useEffect(() => {
+    if (sessionFetcher.current) return;
+    sessionFetcher.current = doFetchSession();
+  }, [router]);
+
   const detectUserIp = async () => {
-    try {
-      const res = await fetch("https://api.ipify.org?format=json");
-      const data = await res.json();
-      setDetectedIp(data.ip);
-      ipForm.setValue("ip", data.ip);
-    } catch {
-      // Fallback
+    const candidates = [
+      "https://api.ipify.org?format=json",
+      "https://api64.ipify.org?format=json",
+    ];
+
+    for (const url of candidates) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data?.ip) {
+          ipForm.setValue("ip", data.ip);
+          return;
+        }
+      } catch {
+        // Try the next provider
+      }
     }
+
+    ipForm.setValue("ip", "127.0.0.1");
+    toast.info(
+      "Using local fallback IP because public IP detection was unavailable.",
+    );
   };
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
-    window.location.assign("/auth");
+    router.push("/auth");
   };
 
   const copyToClipboard = (text: string) => {
@@ -176,7 +195,7 @@ const DashboardPage = () => {
     if (res.ok) {
       toast.success("SID updated successfully!");
       setSidCooldown(86400);
-      fetchSession();
+      doFetchSession(false);
     } else {
       toast.error(result.error);
     }
@@ -191,7 +210,7 @@ const DashboardPage = () => {
     const result = await res.json();
     if (res.ok) {
       toast.success("IP updated successfully!");
-      fetchSession();
+      doFetchSession(false);
     } else {
       toast.error(result.error);
     }
@@ -206,9 +225,38 @@ const DashboardPage = () => {
     const result = await res.json();
     if (res.ok) {
       toast.success("Discord ID updated!");
-      fetchSession();
+      doFetchSession(false);
     } else {
       toast.error(result.error);
+    }
+  };
+
+  const handleRedeemKey = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!redeemKey.trim()) {
+      toast.error("Please enter a license key");
+      return;
+    }
+
+    setRedeeming(true);
+    try {
+      const res = await fetch("/api/keys/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: redeemKey.trim() }),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        toast.success(result.message || "Key redeemed successfully");
+        setRedeemKey("");
+        doFetchSession(true);
+      } else {
+        toast.error(result.error || "Unable to redeem key");
+      }
+    } catch {
+      toast.error("Unable to redeem key");
+    } finally {
+      setRedeeming(false);
     }
   };
 
@@ -223,11 +271,73 @@ const DashboardPage = () => {
   if (!session?.user) return null;
 
   const user = session.user;
-  const isAdmin = user.role === "ADMIN";
+  const isAdmin = user.role === "ADMIN" || user.role === "OWNER";
+  const hasValidPremium = session.premium?.isValid === true;
+  const needsPremiumRenewal = !hasValidPremium && !isAdmin;
+
+  if (needsPremiumRenewal) {
+    const isExpired = session.premium?.reason === "expired";
+    return (
+      <div className="mx-auto flex min-h-dvh max-w-4xl items-center justify-center p-6">
+        <Card className="w-full max-w-xl">
+          <CardHeader className="text-center">
+            <div className="mb-2 flex justify-center">
+              <div className="bg-destructive/10 rounded-full p-3">
+                <AlertTriangleIcon className="text-destructive h-8 w-8" />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold">
+              {isExpired ? "License Expired" : "Premium Access Required"}
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              {isExpired ?
+                "Your license key has expired. Please renew with a new valid key to continue using the dashboard."
+              : "A valid premium license key is required to access the dashboard."
+              }
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form
+              onSubmit={handleRedeemKey}
+              className="flex flex-col gap-3">
+              <Field>
+                <FieldLabel htmlFor="renew-key">New License Key</FieldLabel>
+                <Input
+                  id="renew-key"
+                  value={redeemKey}
+                  onChange={(event) => setRedeemKey(event.target.value)}
+                  placeholder="Enter your new license key"
+                />
+              </Field>
+              <Button
+                type="submit"
+                disabled={redeeming}
+                className="w-full">
+                <KeyIcon className="mr-2 h-4 w-4" />
+                {redeeming ? "Activating..." : "Activate New Key"}
+              </Button>
+            </form>
+            <Button
+              variant="outline"
+              onClick={() => {
+                sessionFetcher.current = null;
+                doFetchSession(true);
+              }}
+              className="w-full">
+              <RefreshCwIcon className="mr-2 h-4 w-4" /> Check Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const now = new Date();
   const daysLeft =
     session.premium?.expiresAt ?
       Math.ceil(
-        (new Date(session.premium.expiresAt).getTime() - Date.now()) / 86400000,
+        (new Date(session.premium.expiresAt).getTime() - now.getTime()) /
+          86400000,
       )
     : null;
 
@@ -249,13 +359,13 @@ const DashboardPage = () => {
               {user.displayName || user.username}
             </h1>
             <p className="text-muted-foreground truncate text-xs sm:text-sm">
-              {user.email}
+              Welcome back, {user.displayName || user.username}
             </p>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge variant={isAdmin ? "default" : "secondary"}>
                 {user.role}
               </Badge>
-              {session.premium && (
+              {hasValidPremium && (
                 <Badge
                   variant="outline"
                   className="border-yellow-500 text-yellow-500">
@@ -270,7 +380,7 @@ const DashboardPage = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.assign("/dashboard/admin")}>
+              onClick={() => router.push("/dashboard/admin")}>
               <ShieldIcon className="mr-1.5 h-4 w-4" /> Admin Panel
             </Button>
           )}
@@ -312,7 +422,7 @@ const DashboardPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <span className="text-sm font-medium">Premium</span>
+            <span className="text-sm font-medium">License</span>
             <KeyIcon className="text-muted-foreground h-4 w-4" />
           </CardHeader>
           <CardContent>
@@ -323,6 +433,8 @@ const DashboardPage = () => {
                 `${daysLeft} days left`
               : session.premium ?
                 "Expired"
+              : isAdmin ?
+                "Unlimited"
               : "None"}
             </p>
           </CardContent>
@@ -340,6 +452,30 @@ const DashboardPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Premium status card */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold">License Status</h2>
+              <p className="text-muted-foreground text-sm">
+                {hasValidPremium ?
+                  "Your account has an active license."
+                : isAdmin ?
+                  "Admin accounts have unlimited access."
+                : "No valid license found."}
+              </p>
+            </div>
+            {session.premium && (
+              <Badge
+                variant={session.premium.isValid ? "default" : "secondary"}>
+                {session.premium.isValid ? "Active" : session.premium.reason}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+      </Card>
 
       {/* Discord Info */}
       {session.discord && (

@@ -75,7 +75,7 @@ const ForgotPasswordPage = () => {
                 <MailIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <p className="text-muted-foreground text-sm">
-                If an account with that email exists, we've sent a password
+                If an account with that email exists, we&apos;ve sent a password
                 reset OTP. Please check your inbox and use the code to reset
                 your password.
               </p>
@@ -97,8 +97,8 @@ const ForgotPasswordPage = () => {
               className="grid gap-4"
               noValidate>
               <p className="text-muted-foreground text-center text-sm">
-                Enter your email address and we'll send you an OTP to reset your
-                password.
+                Enter your email address and we&apos;ll send you an OTP to reset
+                your password.
               </p>
 
               <Controller

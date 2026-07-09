@@ -77,10 +77,6 @@ const AdminDashboard = () => {
   const [generating, setGenerating] = useState(false);
   const [generatedKeys, setGeneratedKeys] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     try {
       const [usersRes, keysRes] = await Promise.all([
@@ -103,6 +99,14 @@ const AdminDashboard = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const load = async () => {
+      await fetchData();
+    };
+
+    void load();
+  }, []);
 
   const handleUserAction = async (
     userId: string,
@@ -380,8 +384,17 @@ const AdminDashboard = () => {
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="USER">USER</SelectItem>
-                                <SelectItem value="MOD">MOD</SelectItem>
+                                <SelectItem value="MODERATOR">
+                                  MODERATOR
+                                </SelectItem>
+                                <SelectItem value="DISTRIBUTOR">
+                                  DISTRIBUTOR
+                                </SelectItem>
+                                <SelectItem value="RESELLER">
+                                  RESELLER
+                                </SelectItem>
                                 <SelectItem value="ADMIN">ADMIN</SelectItem>
+                                <SelectItem value="OWNER">OWNER</SelectItem>
                               </SelectContent>
                             </Select>
                             <Button

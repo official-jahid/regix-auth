@@ -115,7 +115,16 @@ export async function PATCH(request: NextRequest) {
         });
 
       case "setRole":
-        if (!["USER", "ADMIN", "MOD"].includes(value)) {
+        if (
+          ![
+            "USER",
+            "ADMIN",
+            "MODERATOR",
+            "DISTRIBUTOR",
+            "RESELLER",
+            "OWNER",
+          ].includes(value)
+        ) {
           return NextResponse.json({ error: "Invalid role" }, { status: 400 });
         }
         await prisma.user.update({

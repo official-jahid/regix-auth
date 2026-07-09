@@ -170,8 +170,8 @@ export function detectIp(headers: Headers): string {
 // DETECT IP FROM NEXTREQUEST (preferred - uses Next.js built-in)
 // ============================================================
 export function detectIpFromRequest(request: NextRequest): string {
-  // Next.js App Router provides request.ip directly behind proxies
-  if ((request as any).ip) return (request as any).ip as string;
+  const requestIp = (request as NextRequest & { ip?: string }).ip;
+  if (requestIp) return requestIp;
 
   // Fallback to header-based detection
   return detectIp(request.headers);
@@ -281,4 +281,25 @@ export async function verifyOtp(
   });
 
   return { valid: true, userId: otp.userId };
+}
+
+// ============================================================
+// NOTIFICATION HELPER (create notification for user)
+// ============================================================
+export async function createNotification(
+  userId: string,
+  title: string,
+  message: string,
+  type: "info" | "success" | "warning" | "error" = "info",
+  link?: string,
+) {
+  return prisma.notification.create({
+    data: {
+      userId,
+      title,
+      message,
+      type,
+      link: link || null,
+    },
+  });
 }

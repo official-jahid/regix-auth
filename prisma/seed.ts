@@ -9,9 +9,15 @@ const adapter = new PrismaLibSql({
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@regix-auth.com";
-  const adminUsername = process.env.ADMIN_USERNAME ?? "owner";
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "RegixAdmin123!";
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  // Only seed if all admin env vars are set
+  if (!adminEmail || !adminUsername || !adminPassword) {
+    console.log("Admin env vars not fully configured. Skipping seed.");
+    return;
+  }
 
   const existingAdmin = await prisma.user.findFirst({
     where: {
@@ -26,22 +32,21 @@ async function main() {
 
   const passwordHash = await bcrypt.hash(adminPassword, 12);
 
+  // Also generate some demo license keys for testing
   await prisma.user.create({
     data: {
       email: adminEmail,
       username: adminUsername,
       passwordHash,
-      displayName: "System Admin",
+      displayName: adminUsername,
       role: "ADMIN",
       isActive: true,
       isBlacklisted: false,
     },
   });
 
-  console.log("✅ Admin account created successfully!");
-  console.log(`   Email: ${adminEmail}`);
-  console.log(`   Username: ${adminUsername}`);
-  console.log("   PLEASE CHANGE YOUR PASSWORD ON FIRST LOGIN!");
+  console.log("Admin account seeded successfully.");
+  console.log("IMPORTANT: Change default credentials immediately.");
 }
 
 main()

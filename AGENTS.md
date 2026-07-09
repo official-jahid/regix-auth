@@ -139,12 +139,39 @@ See existing examples under `src/components/Auth/`.
 
 - `bun.lock` is committed; Bun is the primary workflow (`bun install`, `bun <script>`). npm works (engines pin `node >=24`, `npm >=11`) but the scripts and README are written around `bun`.
 
+## Security Architecture
+
+- **Rate Limiting**: `src/lib/security/rateLimiter.ts` — in-memory sliding window per-IP. Three tiers: `STRICT_LIMIT` (5/min for auth), `MODERATE_LIMIT` (20/min for API), `BOT_LIMIT` (60/min for internal). Headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, `Retry-After`.
+- **Brute Force Protection**: `src/lib/security/bruteForceProtection.ts` — tracks failed attempts per IP and per user with exponential backoff (30s → 2m → 5m → 15m → 1h → 2h). Blocks after 5 failed attempts. Cleared on successful login.
+- **CSRF Protection**: `src/lib/security/csrf.ts` — double-submit cookie pattern. Token set as non-httpOnly cookie on login/register, validated via `x-csrf-token` header on state-changing requests. Constant-time comparison.
+- **Security Middleware**: `src/lib/security/securityMiddleware.ts` — combines all protections. `applySecurity()` for route-level checks, `checkLoginBruteForce()` for login endpoints, `securityHeaders()` for response headers (HSTS, X-Frame-Options, X-Content-Type-Options, Permissions-Policy, etc.).
+- **Password Policy**: Min 8 chars, requires uppercase, lowercase, and number. Enforced in register route.
+- **Session Security**: Sessions auto-expire after 7 days. Password reset destroys all sessions. HttpOnly auth cookies.
+
+## New Modules Added
+
+- `src/lib/security/` — Complete security layer (rate limiter, brute force, CSRF, middleware)
+- `src/lib/roles.ts` — Hierarchical role system (OWNER > ADMIN > MODERATOR > DISTRIBUTOR > RESELLER > USER)
+- `src/lib/notifications.ts` — Notification helper (create, list, mark read, bulk, cleanup)
+- `src/bot/utils/logger.ts` — Discord bot log service (sends embeds to configured log channel)
+- `src/app/api/bot/log-config/route.ts` — Bot log channel configuration API
+- `src/app/api/notifications/mark-read/route.ts` — Mark single notification as read
+- `src/app/api/notifications/mark-all-read/route.ts` — Mark all notifications as read
+- `src/components/Notifications/NotificationCenter.tsx` — Notification center UI component
+- `src/app/notifications/page.tsx` — Notification center page
+
+## Fixed Bugs
+
+- **OTP Email Bug**: Removed broken `message.replace()` regex that was corrupting the email template. OTP now renders correctly in the email body.
+- **IP Detection**: `detectUserIp()` in dashboard now properly falls back through multiple providers (ipify, ipify v6) before using local fallback.
+
 ## Misc
 
 - ESLint ignores: `.next/**`, `out/**`, `build/**`, `next-env.d.ts`, `generated/**`.
 - `.env` is gitignored; `.env.example` is the committed template. Do not commit secrets.
 - `CHECKPOINT_DISABLE=1` is set to silence Prisma telemetry.
 - No CI workflows or pre-commit hooks exist. Pre-PR verification is `bun lint` then `bun run build` (see Verification above).
+- Build command on Windows: `bun run build --webpack` (Turbopack native bindings unavailable on win32/x64).
 
 ## Git commits
 
