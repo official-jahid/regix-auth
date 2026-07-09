@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
-import "./src/lib/env/clientEnv";
-import "./src/lib/env/serverEnv";
+import "./src/lib/env/clientEnv.ts";
+import "./src/lib/env/serverEnv.ts";
 
 const nextConfig: NextConfig = {};
 

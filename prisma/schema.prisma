@@ -22,9 +22,11 @@ model User {
   passwordHash  String
   displayName   String?
   avatarUrl     String?
-  role          String   @default("USER") // USER, ADMIN, MOD
+  role          String   @default("USER") // OWNER, ADMIN, MODERATOR, DISTRIBUTOR, RESELLER, USER
   isActive      Boolean  @default(true)
   isBlacklisted Boolean  @default(false)
+  status        String   @default("offline") // "online", "offline", "idle", "dnd"
+  lastSeenAt    DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -36,6 +38,13 @@ model User {
   loginHistory     LoginHistory[]
   blacklistHistory BlacklistEntry[]
   otps             OtpCode[]
+  notifications    Notification[]
+  sentMessages     ChatMessage[]    @relation("SentMessages")
+  receivedMessages ChatMessage[]    @relation("ReceivedMessages")
+  chatReactions    ChatReaction[]
+  conversations1   Conversation[]   @relation("User1Conversations")
+  conversations2   Conversation[]   @relation("User2Conversations")
+  apiKeys          ApiKey[]
 }
 
 // ============================================================
@@ -173,6 +182,36 @@ model AuditLog {
 }
 
 // ============================================================
+// NOTIFICATION MODEL
+// ============================================================
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("info") // "info", "success", "warning", "error"
+  read      Boolean  @default(false)
+  link      String? // Optional link to redirect to
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+// ============================================================
+// BOT CONFIG MODEL
+// ============================================================
+model BotConfig {
+  id           String  @id @default(cuid())
+  guildId      String  @unique
+  logChannelId String?
+  modRoleId    String?
+  adminRoleId  String?
+}
+
+// ============================================================
 // OTP CODE MODEL (Email verification, password reset)
 // ============================================================
 model OtpCode {
@@ -190,4 +229,103 @@ model OtpCode {
   @@index([userId, type])
   @@index([email, code, type])
   @@index([createdAt])
+}
+
+// ============================================================
+// WHITELIST MODEL
+// ============================================================
+model Whitelist {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  addedBy   String?
+  createdAt DateTime @default(now())
+}
+
+// ============================================================
+// CONVERSATION MODEL (Direct chat between two users)
+// ============================================================
+model Conversation {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user1 User @relation("User1Conversations", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2 User @relation("User2Conversations", fields: [user2Id], references: [id], onDelete: Cascade)
+
+  messages ChatMessage[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([updatedAt])
+}
+
+// ============================================================
+// CHAT MESSAGE MODEL
+// ============================================================
+model ChatMessage {
+  id             String    @id @default(cuid())
+  conversationId String
+  senderId       String
+  receiverId     String
+  content        String
+  isEdited       Boolean   @default(false)
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  expiresAt      DateTime // Auto-delete after this time (24h from creation)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver     User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  reactions ChatReaction[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([expiresAt])
+}
+
+// ============================================================
+// API KEY MODEL (For external applications/services)
+// ============================================================
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String // Human-readable name for the key
+  key         String    @unique // The actual API key (hashed in DB)
+  keyPrefix   String // First 8 chars shown to user for identification
+  userId      String // Who created this key
+  permissions String    @default("read") // Comma-separated: read, write, admin
+  isActive    Boolean   @default(true)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([key])
+  @@index([userId])
+  @@index([isActive])
+}
+
+// ============================================================
+// CHAT REACTION MODEL
+// ============================================================
+model ChatReaction {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  emoji     String // Single emoji character or shortcode
+  createdAt DateTime @default(now())
+
+  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
 }

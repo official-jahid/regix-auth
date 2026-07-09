@@ -16,12 +16,14 @@ import {
   SidebarSeparator,
 } from "@/components/shadcnui/sidebar";
 import {
+  BellIcon,
   BookOpenIcon,
   GlobeIcon,
   HomeIcon,
   KeyIcon,
   LayoutDashboardIcon,
   LogOutIcon,
+  MessageSquareIcon,
   ShieldIcon,
   UserIcon,
 } from "lucide-react";
@@ -34,6 +36,7 @@ export function AppSidebar() {
   const [authenticated, setAuthenticated] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [username, setUsername] = useState("");
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -44,6 +47,14 @@ export function AppSidebar() {
           setAuthenticated(data.authenticated);
           setIsAdmin(data.user?.role === "ADMIN");
           setUsername(data.user?.username || "");
+
+          if (data.authenticated) {
+            const notificationsRes = await fetch("/api/notifications");
+            if (notificationsRes.ok) {
+              const notificationsData = await notificationsRes.json();
+              setUnreadCount(notificationsData.unreadCount || 0);
+            }
+          }
         }
       } catch {
         setAuthenticated(false);
@@ -113,10 +124,33 @@ export function AppSidebar() {
 
                   <SidebarMenuItem>
                     <SidebarMenuButton
+                      isActive={isActive("/chat")}
+                      onClick={() => router.push("/chat")}>
+                      <MessageSquareIcon />
+                      <span>Messages</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
                       isActive={isActive("/profile")}
                       onClick={() => router.push("/profile")}>
                       <UserIcon />
                       <span>Profile</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={isActive("/notifications")}
+                      onClick={() => router.push("/notifications")}>
+                      <BellIcon />
+                      <span>Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="bg-primary ml-auto rounded-full px-2 py-0.5 text-[10px] text-white">
+                          {unreadCount}
+                        </span>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
 

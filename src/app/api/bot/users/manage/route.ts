@@ -81,7 +81,19 @@ export async function POST(request: NextRequest) {
             username,
             passwordHash,
             displayName: username,
-            role: ["USER", "ADMIN", "MOD"].includes(role) ? role : "USER",
+            role:
+              (
+                [
+                  "USER",
+                  "ADMIN",
+                  "MODERATOR",
+                  "DISTRIBUTOR",
+                  "RESELLER",
+                  "OWNER",
+                ].includes(role)
+              ) ?
+                role
+              : "USER",
             isActive: true,
           },
         });

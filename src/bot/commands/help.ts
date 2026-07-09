@@ -33,6 +33,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           "`/genkey` - Generate premium license keys\n" +
           "`/genuser` - Create a new user account\n" +
           "`/genlicense` - Generate premium license keys (batch)\n" +
+          "`/genuser` - Create a new user account with role selection\n" +
           "`/blacklist` - Blacklist a user\n" +
           "`/unblacklist` - Unblacklist a user\n" +
           "`/whitelist` - Add a user to the whitelist\n" +

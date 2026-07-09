@@ -15,7 +15,7 @@ import {
   InputOTPSlot,
 } from "@/components/shadcnui/input-otp";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoaderIcon, MailCheckIcon, UserPlusIcon } from "lucide-react";
+import { KeyIcon, LoaderIcon, MailCheckIcon, UserPlusIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -34,6 +34,10 @@ const registerSchema = z
       .min(6, "Password must be at least 6 characters")
       .max(64, "Password must be less than 64 characters"),
     confirmPassword: z.string(),
+    token: z
+      .string()
+      .min(1, "License key is required")
+      .regex(/^[A-Z0-9-]+$/, "Invalid license key format"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -50,9 +54,8 @@ const RegisterPage = () => {
   const {
     handleSubmit,
     control,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
     reset,
-    getValues,
   } = useForm({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -60,6 +63,7 @@ const RegisterPage = () => {
       email: "",
       password: "",
       confirmPassword: "",
+      token: "",
     },
     mode: "all",
   });
@@ -77,6 +81,7 @@ const RegisterPage = () => {
           username: data.username,
           password: data.password,
           displayName: data.username,
+          token: data.token.trim(),
         }),
       });
 
@@ -275,6 +280,34 @@ const RegisterPage = () => {
                 )}
               />
 
+              {/* License Key - Required */}
+              <Controller
+                name="token"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor={field.name}>
+                      <KeyIcon className="mr-1 inline h-3.5 w-3.5" />
+                      License Key
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id={field.name}
+                      type="text"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Enter your license key (e.g. XXXXX-XXXXX-XXXXX-XXXXX)"
+                      autoComplete="off"
+                    />
+                    <p className="text-muted-foreground mt-1 text-xs">
+                      A valid license key is required to create an account.
+                    </p>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+
               <Button
                 type="submit"
                 disabled={isSubmitting || isLoading}
@@ -292,7 +325,7 @@ const RegisterPage = () => {
             </form>
           : <div className="grid gap-4">
               <p className="text-muted-foreground text-center text-sm">
-                We've sent a 6-digit verification code to{" "}
+                We sent a 6-digit verification code to{" "}
                 <span className="text-foreground font-medium">
                   {registeredEmail}
                 </span>

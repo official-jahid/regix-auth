@@ -1,5 +1,6 @@
 import { getCurrentUser } from "@/lib/auth";
 import prisma from "@/lib/database/dbClient";
+import { getPremiumStatus } from "@/lib/premium";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -15,7 +16,19 @@ export async function GET() {
 
     const premiumKey = await prisma.premiumKey.findFirst({
       where: { userId: user.id, isRedeemed: true },
+      orderBy: { createdAt: "desc" },
     });
+
+    const premiumStatus = getPremiumStatus(
+      premiumKey ?
+        {
+          isRedeemed: premiumKey.isRedeemed,
+          isActive: premiumKey.isActive,
+          expiresAt: premiumKey.expiresAt,
+          isLifetime: premiumKey.isLifetime,
+        }
+      : null,
+    );
 
     const device = await prisma.device.findFirst({
       where: { userId: user.id, isActive: true },
@@ -30,6 +43,7 @@ export async function GET() {
         displayName: user.displayName,
         avatarUrl: user.avatarUrl,
         role: user.role,
+        status: user.status,
         isActive: user.isActive,
         isBlacklisted: user.isBlacklisted,
         createdAt: user.createdAt,
@@ -50,6 +64,8 @@ export async function GET() {
             expiresAt: premiumKey.expiresAt,
             isIpLocked: premiumKey.isIpLocked,
             lockedIp: premiumKey.lockedIp,
+            isValid: premiumStatus.isValid,
+            reason: premiumStatus.reason,
           }
         : null,
       device:
