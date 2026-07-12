@@ -1,6 +1,5 @@
-// ============================================================
-// REGIX AUTH SYSTEM - PRISMA SCHEMA
-// ============================================================
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider = "prisma-client"
@@ -12,320 +11,65 @@ datasource db {
   provider = "sqlite"
 }
 
-// ============================================================
-// USER MODEL
-// ============================================================
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  username      String   @unique
-  passwordHash  String
-  displayName   String?
-  avatarUrl     String?
-  role          String   @default("USER") // OWNER, ADMIN, MODERATOR, DISTRIBUTOR, RESELLER, USER
-  isActive      Boolean  @default(true)
-  isBlacklisted Boolean  @default(false)
-  status        String   @default("offline") // "online", "offline", "idle", "dnd"
-  lastSeenAt    DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
 
-  // Relations
-  sessions         Session[]
-  devices          Device[]
-  discordAccount   DiscordAccount?
-  premiumKeys      PremiumKey[]
-  loginHistory     LoginHistory[]
-  blacklistHistory BlacklistEntry[]
-  otps             OtpCode[]
-  notifications    Notification[]
-  sentMessages     ChatMessage[]    @relation("SentMessages")
-  receivedMessages ChatMessage[]    @relation("ReceivedMessages")
-  chatReactions    ChatReaction[]
-  conversations1   Conversation[]   @relation("User1Conversations")
-  conversations2   Conversation[]   @relation("User2Conversations")
-  apiKeys          ApiKey[]
+  @@unique([email])
+  @@map("user")
 }
 
-// ============================================================
-// SESSION MODEL
-// ============================================================
 model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  ip        String?
-  userAgent String?
+  id        String   @id
   expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([token])
-}
-
-// ============================================================
-// DEVICE MODEL (HWID, SID tracking)
-// ============================================================
-model Device {
-  id           String    @id @default(cuid())
-  userId       String
-  hwid         String // Hardware ID
-  sid          String? // Security Identifier
-  ip           String?
-  isActive     Boolean   @default(true)
-  lastSeenAt   DateTime  @default(now())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  sidUpdatedAt DateTime? // Track when SID was last changed (24h cooldown)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, hwid])
-  @@index([hwid])
-  @@index([userId])
-}
-
-// ============================================================
-// DISCORD ACCOUNT (OAuth linking)
-// ============================================================
-model DiscordAccount {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  discordId     String   @unique
-  username      String?
-  discriminator String?
-  avatarUrl     String?
-  accessToken   String?
-  refreshToken  String?
-  linkedAt      DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([discordId])
-}
-
-// ============================================================
-// PREMIUM KEY MODEL
-// ============================================================
-model PremiumKey {
-  id         String    @id @default(cuid())
-  key        String    @unique
-  duration   Int // Duration in days (0 = lifetime)
-  isLifetime Boolean   @default(false)
-  isRedeemed Boolean   @default(false)
-  redeemedAt DateTime?
-  expiresAt  DateTime? // null for lifetime
-  userId     String?
-  isActive   Boolean   @default(true)
-  isIpLocked Boolean   @default(false)
-  lockedIp   String?
-  createdBy  String // Admin user ID who created this key
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  user User? @relation(fields: [userId], references: [id])
-
-  @@index([key])
-  @@index([userId])
-}
-
-// ============================================================
-// LOGIN HISTORY
-// ============================================================
-model LoginHistory {
-  id         String   @id @default(cuid())
-  userId     String
-  ip         String?
-  method     String // "email", "discord", "hwid", "api"
-  userAgent  String?
-  success    Boolean
-  failReason String?
-  createdAt  DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-// ============================================================
-// BLACKLIST / BAN HISTORY
-// ============================================================
-model BlacklistEntry {
-  id            String   @id @default(cuid())
-  userId        String
-  reason        String?
-  blacklistedBy String // Admin user ID
-  createdAt     DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// ============================================================
-// AUDIT LOG
-// ============================================================
-model AuditLog {
-  id        String   @id @default(cuid())
-  action    String // e.g. "USER_CREATED", "KEY_GENERATED", "USER_BLACKLISTED"
-  userId    String?
-  details   String? // JSON string with details
-  ip        String?
-  createdAt DateTime @default(now())
-
-  @@index([action])
-  @@index([createdAt])
-}
-
-// ============================================================
-// NOTIFICATION MODEL
-// ============================================================
-model Notification {
-  id        String   @id @default(cuid())
-  userId    String
-  title     String
-  message   String
-  type      String   @default("info") // "info", "success", "warning", "error"
-  read      Boolean  @default(false)
-  link      String? // Optional link to redirect to
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, read])
-  @@index([createdAt])
-}
-
-// ============================================================
-// BOT CONFIG MODEL
-// ============================================================
-model BotConfig {
-  id           String  @id @default(cuid())
-  guildId      String  @unique
-  logChannelId String?
-  modRoleId    String?
-  adminRoleId  String?
-}
-
-// ============================================================
-// OTP CODE MODEL (Email verification, password reset)
-// ============================================================
-model OtpCode {
-  id        String    @id @default(cuid())
-  userId    String
-  email     String
-  code      String
-  type      String // "EMAIL_VERIFICATION", "PASSWORD_RESET"
-  expiresAt DateTime
-  usedAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, type])
-  @@index([email, code, type])
-  @@index([createdAt])
-}
-
-// ============================================================
-// WHITELIST MODEL
-// ============================================================
-model Whitelist {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  addedBy   String?
-  createdAt DateTime @default(now())
-}
-
-// ============================================================
-// CONVERSATION MODEL (Direct chat between two users)
-// ============================================================
-model Conversation {
-  id        String   @id @default(cuid())
-  user1Id   String
-  user2Id   String
+  token     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  user1 User @relation("User1Conversations", fields: [user1Id], references: [id], onDelete: Cascade)
-  user2 User @relation("User2Conversations", fields: [user2Id], references: [id], onDelete: Cascade)
-
-  messages ChatMessage[]
-
-  @@unique([user1Id, user2Id])
-  @@index([user1Id])
-  @@index([user2Id])
-  @@index([updatedAt])
-}
-
-// ============================================================
-// CHAT MESSAGE MODEL
-// ============================================================
-model ChatMessage {
-  id             String    @id @default(cuid())
-  conversationId String
-  senderId       String
-  receiverId     String
-  content        String
-  isEdited       Boolean   @default(false)
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  expiresAt      DateTime // Auto-delete after this time (24h from creation)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver     User         @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  reactions ChatReaction[]
-
-  @@index([conversationId, createdAt])
-  @@index([senderId])
-  @@index([receiverId])
-  @@index([expiresAt])
-}
-
-// ============================================================
-// API KEY MODEL (For external applications/services)
-// ============================================================
-model ApiKey {
-  id          String    @id @default(cuid())
-  name        String // Human-readable name for the key
-  key         String    @unique // The actual API key (hashed in DB)
-  keyPrefix   String // First 8 chars shown to user for identification
-  userId      String // Who created this key
-  permissions String    @default("read") // Comma-separated: read, write, admin
-  isActive    Boolean   @default(true)
-  lastUsedAt  DateTime?
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([key])
-  @@index([userId])
-  @@index([isActive])
-}
-
-// ============================================================
-// CHAT REACTION MODEL
-// ============================================================
-model ChatReaction {
-  id        String   @id @default(cuid())
-  messageId String
+  ipAddress String?
+  userAgent String?
   userId    String
-  emoji     String // Single emoji character or shortcode
-  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  message ChatMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
 
-  @@unique([messageId, userId, emoji])
-  @@index([messageId])
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
 }

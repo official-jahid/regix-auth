@@ -1,4 +1,6 @@
+import { authClient } from "@/lib/auth-client";
 import { LoaderIcon, LogOutIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { Button } from "../shadcnui/button";
@@ -6,16 +8,24 @@ import { Button } from "../shadcnui/button";
 const LogoutButton = () => {
   const [loading, setLoading] = useState(false);
 
+  const { replace } = useRouter();
+
   const logoutHandler = async () => {
     setLoading(true);
 
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await authClient.signOut();
+
       toast.success("Logout successful");
-      window.location.assign("/auth");
-    } catch {
+
+      replace("/auth");
+    } catch (error) {
+      console.log(error);
+
       toast.error("Something went wrong");
     }
+
+    await new Promise((r) => setTimeout(r, 1000));
 
     setLoading(false);
   };

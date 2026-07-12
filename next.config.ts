@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
-import "./src/lib/env/clientEnv.ts";
-import "./src/lib/env/serverEnv.ts";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  /* config options here */
+  reactCompiler: true,
+  typedRoutes: true,
+};
 
 export default nextConfig;

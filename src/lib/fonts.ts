@@ -1,13 +1,13 @@
-import { Noto_Sans, Nunito_Sans } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 
-export const notoSansHeading = Noto_Sans({
+export const geistSans = Geist({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-heading",
+  variable: "--font-geist-sans",
 });
 
-export const nunitoSans = Nunito_Sans({
+export const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sans",
+  variable: "--font-geist-mono",
 });
