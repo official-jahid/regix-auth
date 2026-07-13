@@ -1,108 +1,184 @@
+import {
+  ArrowRight,
+  BookOpen,
+  Bot,
+  Github,
+  Key,
+  Layers,
+  Shield,
+  Sparkles,
+} from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Regix Auth - Authentication & Authorization System",
+  title: "Regix Auth — Authentication & Authorization System",
   description:
-    "Enterprise-grade authentication system for web apps, desktop applications, and more.",
+    "A comprehensive authentication and authorization system with Discord bot integration, HWID/SID licensing, and premium key management.",
 };
 
-const HomePage = () => {
+interface QuickLink {
+  title: string;
+  description: string;
+  href: string;
+  icon: typeof Sparkles;
+  external?: boolean;
+}
+
+const quickLinks: QuickLink[] = [
+  {
+    title: "Features",
+    description: "Explore all features and capabilities",
+    href: "/features",
+    icon: Sparkles,
+  },
+  {
+    title: "Documentation",
+    description: "View the full project documentation",
+    href: "https://github.com/official-jahid/regix-auth",
+    icon: BookOpen,
+    external: true,
+  },
+  {
+    title: "Get Started",
+    description: "Sign in or create an account",
+    href: "/auth",
+    icon: ArrowRight,
+  },
+];
+
+const highlights = [
+  {
+    icon: Shield,
+    title: "Enterprise Security",
+    description:
+      "Rate limiting, brute force protection, CSRF, and comprehensive security headers.",
+  },
+  {
+    icon: Bot,
+    title: "Discord Bot",
+    description:
+      "Full-featured bot with auto-discovery command loading and role-based permissions.",
+  },
+  {
+    icon: Key,
+    title: "License Management",
+    description:
+      "Premium key generation, HWID/SID binding, and IP locking.",
+  },
+  {
+    icon: Layers,
+    title: "Role Hierarchy",
+    description:
+      "6-tier hierarchical access control from Owner to regular User.",
+  },
+];
+
+export default function HomePage() {
   return (
-    <div className="flex min-h-dvh flex-col">
-      {/* Hero Section */}
-      <section className="flex flex-1 items-center justify-center px-4 py-16 md:py-24">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="bg-primary/10 text-primary mb-6 inline-block rounded-full px-4 py-1.5 text-sm font-medium">
-            🔐 Version 1.0.0
+    <div className="min-h-screen">
+      {/* Hero */}
+      <section className="relative overflow-hidden px-4 pb-20 pt-28 text-center">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        <div className="relative mx-auto max-w-4xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
+            <Github className="size-4" />
+            Open Source — MIT License
           </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          <h1 className="mb-6 text-5xl font-extrabold tracking-tight sm:text-6xl lg:text-7xl">
             Regix{" "}
-            <span className="from-primary to-primary/60 bg-linear-to-r bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
               Auth
             </span>
           </h1>
-          <p className="text-muted-foreground mb-6 text-base sm:text-lg md:text-xl">
-            Universal authentication & authorization system for web apps,
-            desktop applications, Windows Forms, DLLs, terminal apps, and more.
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
+            A comprehensive authentication and authorization system for web
+            applications, desktop applications, and Windows Forms. Featuring
+            role-based access control, premium license key management, and
+            hardware-based HWID/SID authentication.
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4">
             <Link
               href="/auth"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex h-11 items-center justify-center rounded-md px-8 text-sm font-medium shadow transition-colors">
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl">
               Get Started
+              <ArrowRight className="size-4" />
             </Link>
             <Link
-              href="/auth/register"
-              className="border-input bg-background hover:bg-accent hover:text-accent-foreground inline-flex h-11 items-center justify-center rounded-md border px-8 text-sm font-medium shadow-sm transition-colors">
-              Create Account
+              href="/features"
+              className="inline-flex items-center gap-2 rounded-full border bg-card px-6 py-3 text-sm font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground">
+              Learn More
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="border-t py-16">
-        <div className="mx-auto max-w-6xl px-4">
-          <h2 className="mb-12 text-center text-3xl font-bold">
-            Authentication Methods
-          </h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
+      {/* Highlights */}
+      <section className="mx-auto mb-24 max-w-6xl px-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {highlights.map((item) => {
+            const Icon = item.icon;
+            return (
               <div
-                key={feature.title}
-                className="bg-card rounded-lg border p-6 shadow-sm transition-shadow hover:shadow-md">
-                <div className="mb-3 text-3xl">{feature.icon}</div>
-                <h3 className="mb-2 font-semibold">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">
-                  {feature.description}
+                key={item.title}
+                className="rounded-2xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </div>
+                <h3 className="mb-1.5 font-semibold">{item.title}</h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {item.description}
                 </p>
               </div>
-            ))}
-          </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Quick Links */}
+      <section className="mx-auto mb-24 max-w-6xl px-4">
+        <h2 className="mb-8 text-center text-3xl font-bold tracking-tight">
+          Explore
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {quickLinks.map((link) => {
+            const Icon = link.icon;
+            const content = (
+              <>
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </div>
+                <div>
+                  <h3 className="font-semibold group-hover:text-primary">
+                    {link.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {link.description}
+                  </p>
+                </div>
+              </>
+            );
+
+            return link.external ? (
+              <a
+                key={link.title}
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-4 rounded-2xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                {content}
+              </a>
+            ) : (
+              <Link
+                key={link.title}
+                href={link.href as any}
+                className="group flex items-center gap-4 rounded-2xl border bg-card p-6 shadow-sm transition-all hover:border-primary/50 hover:shadow-md">
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>
   );
-};
-
-const features = [
-  {
-    title: "Email & Password",
-    description:
-      "Traditional authentication with secure password hashing using bcryptjs.",
-    icon: "📧",
-  },
-  {
-    title: "Discord OAuth2",
-    description:
-      "Seamless Discord account linking with full OAuth2 integration.",
-    icon: "💬",
-  },
-  {
-    title: "HWID / SID Authentication",
-    description:
-      "Hardware-based authentication for desktop apps, Windows Forms, and DLLs.",
-    icon: "💻",
-  },
-  {
-    title: "IP Authentication & Locking",
-    description:
-      "Auto-detect and lock accounts to specific IP addresses for enhanced security.",
-    icon: "🌐",
-  },
-  {
-    title: "Premium License Keys",
-    description:
-      "Generate and manage premium keys with configurable durations including lifetime.",
-    icon: "🔑",
-  },
-  {
-    title: "Admin Dashboard",
-    description:
-      "Full admin panel to manage users, keys, blacklist, and view analytics.",
-    icon: "⚙️",
-  },
-];
-
-export default HomePage;
+}

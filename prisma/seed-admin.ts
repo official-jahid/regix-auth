@@ -1,0 +1,68 @@
+import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { config } from "dotenv";
+import { PrismaClient } from "../generated/prisma/client";
+
+config();
+
+const DATABASE_URL = process.env.DATABASE_URL || "file:./prisma/dev.db";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "jahidekbalmallick@gmail.com";
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "ceojahid";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ceoj@hid.admin";
+
+async function main() {
+  const adapter = new PrismaLibSql({ url: DATABASE_URL });
+  const prisma = new PrismaClient({ adapter });
+
+  const existing = await prisma.user.findUnique({
+    where: { email: ADMIN_EMAIL },
+  });
+
+  if (existing) {
+    console.log(`Admin user already exists: ${existing.email}`);
+    await prisma.$disconnect();
+    return;
+  }
+
+  // Generate a unique ID
+  const { randomUUID } = await import("crypto");
+  const id = randomUUID();
+
+  // Create the user with admin role
+  await prisma.user.create({
+    data: {
+      id,
+      name: ADMIN_USERNAME,
+      email: ADMIN_EMAIL,
+      emailVerified: true,
+      role: "admin",
+    },
+  });
+
+  // Hash the password using the same format Better Auth uses
+  // Better Auth uses bcrypt with the format: $2b$12$...
+  const bcrypt = await import("bcryptjs");
+  const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
+
+  // Create the account with credential provider
+  await prisma.account.create({
+    data: {
+      id: randomUUID(),
+      accountId: id,
+      providerId: "credential",
+      userId: id,
+      password: passwordHash,
+    },
+  });
+
+  console.log(`Admin user created successfully:`);
+  console.log(`  Email:    ${ADMIN_EMAIL}`);
+  console.log(`  Username: ${ADMIN_USERNAME}`);
+  console.log(`  Password: ${ADMIN_PASSWORD}`);
+
+  await prisma.$disconnect();
+}
+
+main().catch((e) => {
+  console.error("Failed to seed admin:", e);
+  process.exit(1);
+});
