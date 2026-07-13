@@ -32,7 +32,7 @@ const LoginForm = () => {
 
   const loginHandler = async (loginData: LoginFormType) => {
     const { error } = await authClient.signIn.email({
-      email: loginData.loginEmail,
+      email: `${loginData.loginEmail}@discord.local`,
       password: loginData.loginPassword,
       rememberMe: loginData.loginRememberMe,
     });
@@ -46,7 +46,6 @@ const LoginForm = () => {
 
       reset();
 
-      // Redirect to dashboard - key validation happens server-side
       replace("/dashboard");
     }
   };
@@ -61,14 +60,14 @@ const LoginForm = () => {
         control={control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+            <FieldLabel htmlFor={field.name}>Username</FieldLabel>
             <Input
               {...field}
               id={field.name}
-              type="email"
+              type="text"
               aria-invalid={fieldState.invalid}
-              placeholder="Enter your email"
-              autoComplete="email"
+              placeholder="Enter your username"
+              autoComplete="username"
             />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
@@ -107,7 +106,7 @@ const LoginForm = () => {
               checked={field.value}
               onCheckedChange={field.onChange}
             />
-            <FieldLabel htmlFor={field.name}>RememberMe</FieldLabel>
+            <FieldLabel htmlFor={field.name}>Remember me</FieldLabel>
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}

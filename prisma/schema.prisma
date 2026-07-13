@@ -126,3 +126,25 @@ model DiscordAccount {
   @@index([discordId])
   @@map("discord_account")
 }
+
+model OtpCode {
+  id            String   @id
+  discordUserId String   @unique
+  otp           String
+  expiresAt     DateTime
+  createdAt     DateTime @default(now())
+
+  @@index([discordUserId])
+  @@map("otp_code")
+}
+
+model BotWhitelist {
+  id        String   @id
+  discordId String   @unique
+  addedBy   String
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([discordId])
+  @@map("bot_whitelist")
+}
