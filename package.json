@@ -5,16 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n next,bot -c cyan,green \"next dev\" \"bun run src/bot/start.ts\"",
-    "dev:next": "next dev",
-    "dev:bot": "bun run src/bot/start.ts",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma db push && next build",
     "start": "concurrently -n next,bot -c cyan,green \"next start -H 0.0.0.0 -p $PORT\" \"bun run src/bot/start.ts\"",
-    "start:next": "next start -H 0.0.0.0 -p $PORT",
-    "start:bot": "bun run src/bot/start.ts",
-    "lint": "eslint",
-    "prod": "prisma generate && eslint && next build && npm run start",
     "migrate": "prisma migrate dev && prisma generate",
-    "studio": "prisma studio --browser none"
+    "migrate:prod": "prisma db push && prisma generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",
