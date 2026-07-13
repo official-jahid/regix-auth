@@ -13,6 +13,7 @@ import {
 } from "@/components/shadcnui/sidebar";
 import { authClient } from "@/lib/auth-client";
 import {
+  ArrowLeft,
   BookOpen,
   LayoutDashboard,
   LogIn,
@@ -44,20 +45,48 @@ const NavItems = [
   { label: "Profile", href: "/profile", icon: User, authOnly: true },
 ];
 
+const THEMES = [
+  { name: "dark", label: "Dark", icon: MoonStarIcon },
+  { name: "light", label: "Light", icon: SunIcon },
+  { name: "midnight", label: "Midnight", icon: MoonStarIcon },
+  { name: "crimson", label: "Crimson", icon: SunIcon },
+] as const;
+
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <button
-      type="button"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex size-full items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors">
-      <SunIcon className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-      <MoonStarIcon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-      <span className="truncate">
-        {theme === "dark" ? "Light Mode" : "Dark Mode"}
+    <div className="flex w-full flex-col gap-1">
+      <span className="text-muted-foreground px-2 text-[10px] font-medium tracking-wider uppercase">
+        Theme
       </span>
-    </button>
+      <div className="flex flex-wrap gap-1 px-1">
+        {THEMES.map((t) => {
+          const Icon = t.icon;
+          const isActive = theme === t.name;
+          return (
+            <button
+              key={t.name}
+              type="button"
+              onClick={() => setTheme(t.name)}
+              className={`hover:bg-sidebar-accent hover:text-sidebar-accent-foreground flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors ${
+                isActive ?
+                  "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-muted-foreground"
+              }`}>
+              <Icon
+                className={`size-3 ${isActive ? "text-primary" : ""} ${
+                  t.name === "dark" ? "rotate-0"
+                  : t.name === "light" ? "scale-100"
+                  : ""
+                }`}
+              />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -72,6 +101,8 @@ export function AppSidebar() {
     if (item.guestOnly) return !isLoggedIn;
     return true;
   });
+
+  const canGoBack = typeof window !== "undefined" && window.history.length > 1;
 
   return (
     <Sidebar
@@ -106,6 +137,32 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Back button */}
+        {canGoBack && pathname !== "/" && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    render={
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          router.back();
+                        }}
+                      />
+                    }>
+                    <ArrowLeft className="size-4" />
+                    <span>Back</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {/* Navigation items */}
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -121,7 +178,7 @@ export function AppSidebar() {
                           href={item.href}
                           onClick={(e) => {
                             e.preventDefault();
-                            (router.push as any)(item.href);
+                            router.push(item.href as any);
                           }}
                         />
                       }>

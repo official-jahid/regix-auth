@@ -162,6 +162,7 @@ See existing examples under `src/components/Auth/`.
 ## Registration Flow
 
 Registration now uses Discord OTP verification instead of email:
+
 1. User enters Discord User ID
 2. Click "Send OTP" to receive 6-digit code via Discord DM (2-minute expiry)
 3. Enter OTP and complete registration with Access Key
@@ -174,6 +175,10 @@ Registration now uses Discord OTP verification instead of email:
 - `CHECKPOINT_DISABLE=1` is set to silence Prisma telemetry.
 - No CI workflows or pre-commit hooks exist. Pre-PR verification is `bun lint` then `bun run build` (see Verification above).
 - Build command on Windows: `bun run build --webpack` (Turbopack native bindings unavailable on win32/x64).
+
+## Build Gotchas
+
+- **`_not-found` prerendering crash (`Cannot read properties of null (reading 'useContext')`)**: Caused when the root `layout.tsx` (Server Component) renders context-dependent components (sidebar using `useTheme`, `authClient.useSession`, etc.) that fail during static prerendering. Fix: extract the context-dependent subtree into a `"use client"` wrapper component (e.g. `SidebarWrapper`), then dynamically import the leaf components with `dynamic(() => import("...").then(m => ({ default: m.Export })), { ssr: false })` wrapped in `<Suspense>`. Also add a custom `src/app/not-found.tsx` to replace Next.js's built-in not-found page which triggers this same prerendering path. Do NOT use `ssr: false` with `next/dynamic` directly in a Server Component — it must be in a `"use client"` file.
 
 ## Git commits
 

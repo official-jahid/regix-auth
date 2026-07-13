@@ -1,12 +1,7 @@
-import { AppSidebar } from "@/components/app-sidebar";
+import ParticleBackground from "@/components/ParticleBackground";
 import ThemeProvider from "@/components/Providers/ThemeProvider";
-import { Separator } from "@/components/shadcnui/separator";
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/shadcnui/sidebar";
-import { geistMono, geistSans } from "@/lib/fonts";
+import SidebarWrapper from "@/components/SidebarWrapper";
+import { geistMono, geistSans, orbitron, spaceGrotesk } from "@/lib/fonts";
 import { ReactNode } from "react";
 import "./globals.css";
 
@@ -18,26 +13,15 @@ const RootLayout = ({ children }: RootLayoutProps) => {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} antialiased`}
       suppressHydrationWarning>
       <body suppressHydrationWarning>
+        <ParticleBackground />
         <ThemeProvider
           attribute={"class"}
           defaultTheme="dark"
           enableSystem={false}>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-                <SidebarTrigger className="-ml-2" />
-                <Separator
-                  orientation="vertical"
-                  className="mr-2 h-4"
-                />
-              </header>
-              <main className="flex-1">{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
+          <SidebarWrapper>{children}</SidebarWrapper>
         </ThemeProvider>
       </body>
     </html>

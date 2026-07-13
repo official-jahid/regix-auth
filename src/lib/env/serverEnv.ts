@@ -16,6 +16,7 @@ const serverEnvSchema = z.object({
   DISCORD_ADMIN_ROLE_ID: z.string().optional(),
   DISCORD_MOD_ROLE_ID: z.string().optional(),
   SUPER_ADMIN_IDS: z.string().optional(),
+  DISCORD_VERIFIED_ROLE_ID: z.string().optional(),
 });
 
 const serverEnvVars = {
@@ -30,6 +31,7 @@ const serverEnvVars = {
   DISCORD_ADMIN_ROLE_ID: process.env.DISCORD_ADMIN_ROLE_ID,
   DISCORD_MOD_ROLE_ID: process.env.DISCORD_MOD_ROLE_ID,
   SUPER_ADMIN_IDS: process.env.SUPER_ADMIN_IDS,
+  DISCORD_VERIFIED_ROLE_ID: process.env.DISCORD_VERIFIED_ROLE_ID,
 };
 
 export const serverEnv = serverEnvSchema.parse(serverEnvVars);
