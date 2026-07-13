@@ -17,6 +17,12 @@ const Header = () => {
         </Link>
 
         <nav className="flex items-center gap-4">
+          <Link
+            className="hover:underline"
+            href={"/features"}>
+            Features
+          </Link>
+
           <AuthNav />
 
           <ThemeToggleButton />

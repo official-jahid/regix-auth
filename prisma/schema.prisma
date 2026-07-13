@@ -12,15 +12,21 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
-  accounts      Account[]
+  id             String          @id
+  name           String
+  email          String
+  emailVerified  Boolean         @default(false)
+  image          String?
+  role           String          @default("user")
+  isActive       Boolean         @default(true)
+  isBlacklisted  Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  sessions       Session[]
+  accounts       Account[]
+  devices        Device[]
+  premiumKeys    PremiumKey[]
+  discordAccount DiscordAccount?
 
   @@unique([email])
   @@map("user")
@@ -72,4 +78,50 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model Device {
+  id        String   @id
+  hwid      String?
+  sid       String?
+  ipAddress String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("device")
+}
+
+model PremiumKey {
+  id         String    @id
+  key        String    @unique
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  duration   Int       @default(0)
+  isLifetime Boolean   @default(false)
+  isActive   Boolean   @default(true)
+  ipLock     String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+  redeemedAt DateTime?
+
+  @@index([userId])
+  @@map("premium_key")
+}
+
+model DiscordAccount {
+  id            String   @id
+  discordId     String   @unique
+  username      String?
+  discriminator String?
+  avatarUrl     String?
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([discordId])
+  @@map("discord_account")
 }

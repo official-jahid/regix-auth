@@ -2,7 +2,6 @@
 
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import LogoutButton from "../Buttons/LogoutButton";
 
 const AuthNav = () => {
   const { data } = authClient.useSession();
@@ -28,11 +27,15 @@ const AuthNav = () => {
     <>
       <Link
         className="hover:underline"
+        href={"/dashboard"}>
+        Dashboard
+      </Link>
+
+      <Link
+        className="hover:underline"
         href={"/profile"}>
         Profile
       </Link>
-
-      <LogoutButton />
     </>
   );
 };
