@@ -5,9 +5,8 @@ import { PrismaClient } from "../generated/prisma/client";
 config();
 
 const DATABASE_URL = process.env.DATABASE_URL || "file:./prisma/dev.db";
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "jahidekbalmallick@gmail.com";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "ceojahid";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ceoj@hid.admin";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "RegixAdmin123!";
 const ADMIN_LIFETIME_KEY =
   process.env.ADMIN_LIFETIME_KEY || "REGIX-AAAAA-BBBBB-CCCCC-DDDDD";
 
@@ -15,14 +14,14 @@ async function main() {
   const adapter = new PrismaLibSql({ url: DATABASE_URL });
   const prisma = new PrismaClient({ adapter });
 
-  const existing = await prisma.user.findUnique({
-    where: { email: ADMIN_EMAIL },
+  const existing = await prisma.user.findFirst({
+    where: { name: ADMIN_USERNAME },
   });
 
   if (existing) {
-    console.log(`Admin user already exists: ${existing.email}`);
+    console.log(`Admin user already exists: ${existing.name}`);
 
-    // Ensure admin lifetime key exists
+    // Ensure admin lifetime key exists as an unassigned key
     const existingKey = await prisma.premiumKey.findUnique({
       where: { key: ADMIN_LIFETIME_KEY },
     });
@@ -36,45 +35,49 @@ async function main() {
           isLifetime: true,
           isActive: true,
           status: "active",
-          userId: existing.id,
-          redeemedAt: new Date(),
+          // Do NOT assign to admin user - keep it unassigned so new users can register with it
         },
       });
       console.log(
-        `Admin lifetime key created for existing admin: ${ADMIN_LIFETIME_KEY}`,
+        `Admin lifetime key created: ${ADMIN_LIFETIME_KEY} (unassigned, available for registration)`,
       );
     } else {
-      console.log(`Admin lifetime key already exists`);
+      // If the key exists but is assigned to someone, free it
+      if (existingKey.userId) {
+        await prisma.premiumKey.update({
+          where: { key: ADMIN_LIFETIME_KEY },
+          data: { userId: null, status: "active" },
+        });
+        console.log(
+          `Admin lifetime key freed from previous assignment: ${ADMIN_LIFETIME_KEY}`,
+        );
+      } else {
+        console.log(`Admin lifetime key already exists (unassigned)`);
+      }
     }
 
     await prisma.$disconnect();
     return;
   }
 
-  // Generate a unique ID
-  const { randomUUID } = await import("crypto");
-  const id = randomUUID();
+  const id = crypto.randomUUID();
 
-  // Create the user with admin role
   await prisma.user.create({
     data: {
       id,
       name: ADMIN_USERNAME,
-      email: ADMIN_EMAIL,
+      email: `${ADMIN_USERNAME}@discord.local`,
       emailVerified: true,
       role: "admin",
     },
   });
 
-  // Hash the password using the same format Better Auth uses
-  // Better Auth uses bcrypt with the format: $2b$12$...
   const bcrypt = await import("bcryptjs");
   const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
-  // Create the account with credential provider
   await prisma.account.create({
     data: {
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       accountId: id,
       providerId: "credential",
       userId: id,
@@ -82,25 +85,24 @@ async function main() {
     },
   });
 
-  // Create admin lifetime key
+  // Create the admin lifetime key UNASSIGNED so new users can register with it
   await prisma.premiumKey.create({
     data: {
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       key: ADMIN_LIFETIME_KEY,
       duration: 0,
       isLifetime: true,
       isActive: true,
       status: "active",
-      userId: id,
-      redeemedAt: new Date(),
     },
   });
 
   console.log(`Admin user created successfully:`);
-  console.log(`  Email:    ${ADMIN_EMAIL}`);
   console.log(`  Username: ${ADMIN_USERNAME}`);
   console.log(`  Password: ${ADMIN_PASSWORD}`);
-  console.log(`  Lifetime Key: ${ADMIN_LIFETIME_KEY}`);
+  console.log(
+    `  Lifetime Key: ${ADMIN_LIFETIME_KEY} (unassigned, available for registration)`,
+  );
 
   await prisma.$disconnect();
 }

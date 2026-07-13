@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/database/dbClient";
+import { serverEnv } from "@/lib/env/serverEnv";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -54,6 +55,9 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if the redeemed key is the admin lifetime key → grant owner role
+    const isAdminLifetimeKey = trimmedKey === serverEnv.ADMIN_LIFETIME_KEY;
+
     // Deactivate the old key (if any) and assign the new one
     const oldKey = await prisma.premiumKey.findFirst({
       where: { userId: session.user.id, isActive: true },
@@ -82,6 +86,14 @@ export async function POST(request: Request) {
         ...(expiresAt ? { expiresAt } : {}),
       },
     });
+
+    // Grant owner role if this is the admin lifetime key
+    if (isAdminLifetimeKey) {
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { role: "owner" },
+      });
+    }
 
     return NextResponse.json({
       success: true,

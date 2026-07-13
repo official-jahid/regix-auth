@@ -96,15 +96,14 @@ See existing examples under `src/components/Auth/`.
 
 ## Database
 
-- **Seed script:** `prisma/seed.ts` (run with `bun run prisma/seed.ts`). Creates default admin account from `ADMIN_EMAIL`, `ADMIN_USERNAME`, `ADMIN_PASSWORD` env vars. Also configured in `prisma.config.ts` as `migrations.seed`.
-- **Reset DB workflow:** Delete `prisma/dev.db`, run `prisma db push`, then `bun run prisma/seed.ts`.
-- **Current default admin:** `ceojahid` / `jahidekbalmallick@gmail.com` / `RegixAdmin123!` (role: ADMIN)
+- **Seed script:** `prisma/seed-admin.ts` (run with `bun run prisma/seed-admin.ts`). Creates default admin account from `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `ADMIN_LIFETIME_KEY` env vars.
+- **Reset DB workflow:** Delete `prisma/dev.db`, run `prisma db push`, then `bun run prisma/seed-admin.ts`.
+- **Current default admin:** `ceojahid` / `RegixAdmin123!` / `REGIX-AAAAA-BBBBB-CCCCC-DDDDD` (role: ADMIN)
 
 ## .env Gotchas
 
-- **NEVER wrap values in quotes.** `dotenv` treats `"value"` as literal quotes in the value. This caused the admin login bug (username stored as `"ceojahid"` instead of `ceojahid`). Always use `KEY=value` format, no quotes.
+- **NEVER wrap values in quotes.** `dotenv` treats `"value"` as literal quotes in the value. Always use `KEY=value` format, no quotes.
 - `SECRET_KEY` is used both as the bot API Bearer token and as a general server secret.
-- `RESEND_API_KEY` is required by Zod validation in `serverEnv.ts` (`z.string().min(1)`). If missing, the dev server will throw at startup.
 - `DISCORD_BOT_TOKEN` is optional; if not set, the bot process logs a warning and skips startup gracefully.
 
 ## Env validation (T3 env)
@@ -153,17 +152,20 @@ See existing examples under `src/components/Auth/`.
 - `src/lib/security/` — Complete security layer (rate limiter, brute force, CSRF, middleware)
 - `src/lib/roles.ts` — Hierarchical role system (OWNER > ADMIN > MODERATOR > DISTRIBUTOR > RESELLER > USER)
 - `src/lib/notifications.ts` — Notification helper (create, list, mark read, bulk, cleanup)
-- `src/bot/utils/logger.ts` — Discord bot log service (sends embeds to configured log channel)
-- `src/app/api/bot/log-config/route.ts` — Bot log channel configuration API
-- `src/app/api/notifications/mark-read/route.ts` — Mark single notification as read
-- `src/app/api/notifications/mark-all-read/route.ts` — Mark all notifications as read
+- `src/lib/discord-bot.ts` — Discord Bot REST client for sending OTP DMs
+- `src/actions/auth-actions.ts` — Server actions for Discord OTP verification and registration
+- `src/app/api/auth/send-otp/route.ts` — API endpoint for sending Discord OTP
+- `src/app/api/auth/register/route.ts` — API endpoint for user registration with OTP validation
 - `src/components/Notifications/NotificationCenter.tsx` — Notification center UI component
 - `src/app/notifications/page.tsx` — Notification center page
 
-## Fixed Bugs
+## Registration Flow
 
-- **OTP Email Bug**: Removed broken `message.replace()` regex that was corrupting the email template. OTP now renders correctly in the email body.
-- **IP Detection**: `detectUserIp()` in dashboard now properly falls back through multiple providers (ipify, ipify v6) before using local fallback.
+Registration now uses Discord OTP verification instead of email:
+1. User enters Discord User ID
+2. Click "Send OTP" to receive 6-digit code via Discord DM (2-minute expiry)
+3. Enter OTP and complete registration with Access Key
+4. Password policy: Min 8 chars, uppercase, lowercase, and number required
 
 ## Misc
 
@@ -188,8 +190,8 @@ commit message here
 ### Phase 1 — Foundation (Complete ✅)
 
 - [x] Next.js 16 + React 19 App Router with shadcn/Base UI
-- [x] Prisma 7 + libSQL (SQLite) database schema with User, Session, Device, DiscordAccount, PremiumKey, LoginHistory, BlacklistEntry, AuditLog, OtpCode
-- [x] Authentication (email/password login, Discord OAuth, session management)
+- [x] Prisma 7 + libSQL (SQLite) database schema with User, Session, Device, DiscordAccount, PremiumKey, OtpCode
+- [x] Authentication (username/password login, Discord OTP registration, session management)
 - [x] Admin seed and panel basics
 
 ### Phase 2 — Discord Bot (In Progress 🔄)
@@ -211,7 +213,7 @@ commit message here
 - [ ] C++/client-side integration for HWID extraction
 - [ ] License key redemption flow on web dashboard
 
-### Phase 4 — Dashboard & Admin Panel (Partial 🟡)
+### Phase 4 — Dashboard & Admin Panel (Complete ✅)
 
 - [x] Login/Register/Forgot Password pages
 - [x] User dashboard (session info, devices, premium status)
