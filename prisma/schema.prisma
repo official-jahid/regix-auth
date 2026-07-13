@@ -148,3 +148,119 @@ model BotWhitelist {
   @@index([discordId])
   @@map("bot_whitelist")
 }
+
+model GuildSettings {
+  id                    String   @id
+  guildId               String   @unique
+  verificationEnabled   Boolean  @default(false)
+  verifiedRoleId        String?
+  verificationChannelId String?
+  antiNukeEnabled       Boolean  @default(false)
+  antiRaidEnabled       Boolean  @default(false)
+  antiSpamEnabled       Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("guild_settings")
+}
+
+model AntiNukeConfig {
+  id                 String   @id
+  guildId            String   @unique
+  banLimit           Int      @default(5)
+  kickLimit          Int      @default(5)
+  channelDeleteLimit Int      @default(3)
+  channelCreateLimit Int      @default(3)
+  roleCreateLimit    Int      @default(3)
+  roleDeleteLimit    Int      @default(3)
+  webhookLimit       Int      @default(3)
+  punishment         String   @default("ban") // ban, kick, role-remove
+  enabled            Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("anti_nuke_config")
+}
+
+model AntiRaidConfig {
+  id                String   @id
+  guildId           String   @unique
+  joinThreshold     Int      @default(10)
+  joinTimeWindow    Int      @default(10) // seconds
+  messageThreshold  Int      @default(20)
+  messageTimeWindow Int      @default(10) // seconds
+  mentionThreshold  Int      @default(10)
+  punishment        String   @default("ban")
+  enabled           Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("anti_raid_config")
+}
+
+model AntiSpamConfig {
+  id             String   @id
+  guildId        String   @unique
+  messageLimit   Int      @default(5)
+  timeWindow     Int      @default(5) // seconds
+  duplicateLimit Int      @default(3)
+  punishment     String   @default("mute")
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([guildId])
+  @@map("anti_spam_config")
+}
+
+model AuditLog {
+  id        String   @id
+  userId    String?
+  guildId   String?
+  action    String
+  target    String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([guildId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_log")
+}
+
+model AdminIpAllowlist {
+  id        String   @id
+  ipAddress String   @unique
+  label     String?
+  addedBy   String
+  createdAt DateTime @default(now())
+
+  @@map("admin_ip_allowlist")
+}
+
+model TotpSecret {
+  id        String   @id
+  userId    String   @unique
+  secret    String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("totp_secret")
+}
+
+model TotpBackupCode {
+  id     String  @id
+  userId String
+  code   String
+  used   Boolean @default(false)
+
+  @@index([userId])
+  @@map("totp_backup_code")
+}

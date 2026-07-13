@@ -13,5 +13,24 @@ export const auth = betterAuth({
     autoSignIn: false,
     requireEmailVerification: false,
     username: true,
+    minPasswordLength: 8,
+  },
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL || "",
+    process.env.NEXT_PUBLIC_APP_URL || "",
+  ].filter(Boolean),
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // 1 day
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
+  },
+  advanced: {
+    cookiePrefix: "regix-auth",
+    crossSubDomainCookies: {
+      enabled: false,
+    },
   },
 });
