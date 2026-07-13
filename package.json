@@ -15,7 +15,6 @@
     "format": "prettier --write .",
     "typecheck": "npx tsc --noEmit"
   },
-=======
  "scripts": {
   "dev": "concurrently -n next,bot -c cyan,green \"next dev\" \"bun run src/bot/start.ts\"",
   "build": "prisma generate && prisma db push && next build",
