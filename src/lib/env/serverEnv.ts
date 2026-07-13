@@ -6,12 +6,16 @@ const serverEnvSchema = z.object({
     .string()
     .min(1, { error: "BETTER_AUTH_SECRET is required" }),
   BETTER_AUTH_URL: z.string().min(1, { error: "BETTER_AUTH_URL is required" }),
+  ADMIN_LIFETIME_KEY: z
+    .string()
+    .min(1, { error: "ADMIN_LIFETIME_KEY is required" }),
 });
 
 const serverEnvVars = {
   DATABASE_URL: process.env.DATABASE_URL,
   BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+  ADMIN_LIFETIME_KEY: process.env.ADMIN_LIFETIME_KEY,
 };
 
 export const serverEnv = serverEnvSchema.parse(serverEnvVars);

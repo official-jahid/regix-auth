@@ -1,16 +1,13 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import { ToastContainer } from "react-toastify";
+import { Toaster } from "@/components/shadcnui/sonner";
 
 const ToastProvider = () => {
-  const { theme } = useTheme();
-
   return (
-    <ToastContainer
+    <Toaster
       position="bottom-right"
-      autoClose={1500}
-      theme={theme === "dark" ? "dark" : "light"}
+      richColors
+      closeButton
     />
   );
 };

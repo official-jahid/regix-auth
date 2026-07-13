@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderIcon, LockIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { Button } from "../shadcnui/button";
 import { Checkbox } from "../shadcnui/checkbox";
 import { Field, FieldError, FieldLabel } from "../shadcnui/field";
@@ -46,7 +46,8 @@ const LoginForm = () => {
 
       reset();
 
-      replace("/profile");
+      // Redirect to dashboard - key validation happens server-side
+      replace("/dashboard");
     }
   };
 

@@ -5,7 +5,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import AdminClient from "./AdminClient";
 
-
 export const metadata: Metadata = {
   title: "Admin Panel | Regix Auth",
   description: "Admin control panel for Regix Auth",
@@ -23,8 +22,20 @@ export interface AdminStats {
     totalSessions: number;
     totalDevices: number;
   };
-  recentUsers: { id: string; name: string; email: string; role: string; createdAt: string }[];
-  recentKeys: { id: string; key: string; isLifetime: boolean; isActive: boolean; createdAt: string }[];
+  recentUsers: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    createdAt: string;
+  }[];
+  recentKeys: {
+    id: string;
+    key: string;
+    isLifetime: boolean;
+    isActive: boolean;
+    createdAt: string;
+  }[];
 }
 
 export interface AdminUser {
@@ -45,6 +56,7 @@ export interface AdminKey {
   duration: number;
   isLifetime: boolean;
   isActive: boolean;
+  status: string;
   ipLock: string | null;
   createdAt: string;
   expiresAt: string | null;
@@ -99,12 +111,24 @@ async function getAdminData(): Promise<{
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
     }),
     prisma.premiumKey.findMany({
       take: 5,
       orderBy: { createdAt: "desc" },
-      select: { id: true, key: true, isLifetime: true, isActive: true, createdAt: true },
+      select: {
+        id: true,
+        key: true,
+        isLifetime: true,
+        isActive: true,
+        createdAt: true,
+      },
     }),
     prisma.user.findMany({
       select: {
@@ -116,7 +140,9 @@ async function getAdminData(): Promise<{
         isActive: true,
         isBlacklisted: true,
         createdAt: true,
-        _count: { select: { sessions: true, devices: true, premiumKeys: true } },
+        _count: {
+          select: { sessions: true, devices: true, premiumKeys: true },
+        },
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -127,6 +153,7 @@ async function getAdminData(): Promise<{
         duration: true,
         isLifetime: true,
         isActive: true,
+        status: true,
         ipLock: true,
         createdAt: true,
         expiresAt: true,
@@ -152,8 +179,14 @@ async function getAdminData(): Promise<{
         totalSessions,
         totalDevices,
       },
-      recentUsers: recentUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
-      recentKeys: recentKeys.map((k) => ({ ...k, createdAt: k.createdAt.toISOString() })),
+      recentUsers: recentUsers.map((u) => ({
+        ...u,
+        createdAt: u.createdAt.toISOString(),
+      })),
+      recentKeys: recentKeys.map((k) => ({
+        ...k,
+        createdAt: k.createdAt.toISOString(),
+      })),
     },
     users: users.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
     keys: keys.map((k) => ({
@@ -166,6 +199,47 @@ async function getAdminData(): Promise<{
 }
 
 export default async function AdminPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) {
+    redirect("/auth");
+  }
+
+  // Get user role - owner bypasses key check
+  const adminUser = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  if (
+    !adminUser ||
+    (adminUser.role !== "admin" && adminUser.role !== "owner")
+  ) {
+    redirect("/dashboard");
+  }
+
+  // Only non-owner admins need key validation
+  if (adminUser.role !== "owner") {
+    const activeKey = await prisma.premiumKey.findFirst({
+      where: { userId: session.user.id, isActive: true },
+      select: { id: true, status: true, expiresAt: true, isActive: true },
+    });
+
+    const needsKeyUpdate =
+      !activeKey || activeKey.status === "blocked" || !activeKey.isActive;
+
+    if (needsKeyUpdate) {
+      redirect("/dashboard/key-update");
+    }
+
+    if (activeKey && activeKey.expiresAt && activeKey.expiresAt < new Date()) {
+      await prisma.premiumKey.update({
+        where: { id: activeKey.id },
+        data: { isActive: false, status: "expired" },
+      });
+      redirect("/dashboard/key-update");
+    }
+  }
+
   const data = await getAdminData();
   return <AdminClient data={data} />;
 }

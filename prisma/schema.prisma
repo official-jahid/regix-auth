@@ -102,6 +102,7 @@ model PremiumKey {
   duration   Int       @default(0)
   isLifetime Boolean   @default(false)
   isActive   Boolean   @default(true)
+  status     String    @default("active") // active, expired, blocked, used
   ipLock     String?
   createdAt  DateTime  @default(now())
   expiresAt  DateTime?
