@@ -8,6 +8,8 @@ const DATABASE_URL = process.env.DATABASE_URL || "file:./prisma/dev.db";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "jahidekbalmallick@gmail.com";
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "ceojahid";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "ceoj@hid.admin";
+const ADMIN_LIFETIME_KEY =
+  process.env.ADMIN_LIFETIME_KEY || "REGIX-AAAAA-BBBBB-CCCCC-DDDDD";
 
 async function main() {
   const adapter = new PrismaLibSql({ url: DATABASE_URL });
@@ -19,6 +21,32 @@ async function main() {
 
   if (existing) {
     console.log(`Admin user already exists: ${existing.email}`);
+
+    // Ensure admin lifetime key exists
+    const existingKey = await prisma.premiumKey.findUnique({
+      where: { key: ADMIN_LIFETIME_KEY },
+    });
+
+    if (!existingKey) {
+      await prisma.premiumKey.create({
+        data: {
+          id: crypto.randomUUID(),
+          key: ADMIN_LIFETIME_KEY,
+          duration: 0,
+          isLifetime: true,
+          isActive: true,
+          status: "active",
+          userId: existing.id,
+          redeemedAt: new Date(),
+        },
+      });
+      console.log(
+        `Admin lifetime key created for existing admin: ${ADMIN_LIFETIME_KEY}`,
+      );
+    } else {
+      console.log(`Admin lifetime key already exists`);
+    }
+
     await prisma.$disconnect();
     return;
   }
@@ -54,10 +82,25 @@ async function main() {
     },
   });
 
+  // Create admin lifetime key
+  await prisma.premiumKey.create({
+    data: {
+      id: randomUUID(),
+      key: ADMIN_LIFETIME_KEY,
+      duration: 0,
+      isLifetime: true,
+      isActive: true,
+      status: "active",
+      userId: id,
+      redeemedAt: new Date(),
+    },
+  });
+
   console.log(`Admin user created successfully:`);
   console.log(`  Email:    ${ADMIN_EMAIL}`);
   console.log(`  Username: ${ADMIN_USERNAME}`);
   console.log(`  Password: ${ADMIN_PASSWORD}`);
+  console.log(`  Lifetime Key: ${ADMIN_LIFETIME_KEY}`);
 
   await prisma.$disconnect();
 }

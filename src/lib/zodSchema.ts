@@ -30,6 +30,10 @@ export const registerFormSchema = z
       .string()
       .min(6, "Password should be more than 6 char. long")
       .max(32, "Password should be less than 32 char. long"),
+    registerAccessKey: z
+      .string()
+      .min(1, "Access key is required")
+      .regex(/^[A-Z0-9-]+$/, "Invalid key format"),
   })
   .refine(
     ({ registerPassword, registerConfirmPassword }) =>

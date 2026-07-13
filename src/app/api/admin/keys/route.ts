@@ -40,7 +40,10 @@ export async function GET() {
     return NextResponse.json({ keys });
   } catch (error) {
     console.error("Admin keys fetch error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -63,7 +66,10 @@ export async function POST(request: Request) {
     const { count, duration, lifetime } = await request.json();
 
     if (!count || count < 1 || count > 100) {
-      return NextResponse.json({ error: "Count must be between 1-100" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Count must be between 1-100" },
+        { status: 400 },
+      );
     }
 
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -80,7 +86,8 @@ export async function POST(request: Request) {
       }
       const keyString = segments.join("-");
 
-      const expiresAt = lifetime ? null : new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
+      const expiresAt =
+        lifetime ? null : new Date(Date.now() + duration * 24 * 60 * 60 * 1000);
 
       const premiumKey = await prisma.premiumKey.create({
         data: {
@@ -96,10 +103,16 @@ export async function POST(request: Request) {
       generatedKeys.push(premiumKey);
     }
 
-    return NextResponse.json({ keys: generatedKeys, count: generatedKeys.length });
+    return NextResponse.json({
+      keys: generatedKeys,
+      count: generatedKeys.length,
+    });
   } catch (error) {
     console.error("Admin key generation error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }
 
@@ -119,20 +132,62 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { keyId, action } = await request.json();
+    const { keyId, action, extraDays } = await request.json();
 
     if (!keyId || !action) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    const targetKey = await prisma.premiumKey.findUnique({ where: { id: keyId } });
+    const targetKey = await prisma.premiumKey.findUnique({
+      where: { id: keyId },
+    });
     if (!targetKey) {
       return NextResponse.json({ error: "Key not found" }, { status: 404 });
     }
 
     switch (action) {
       case "toggleActive":
-        await prisma.premiumKey.update({ where: { id: keyId }, data: { isActive: !targetKey.isActive } });
+        await prisma.premiumKey.update({
+          where: { id: keyId },
+          data: {
+            isActive: !targetKey.isActive,
+            status: targetKey.isActive ? "blocked" : "active",
+          },
+        });
+        break;
+      case "block":
+        await prisma.premiumKey.update({
+          where: { id: keyId },
+          data: { isActive: false, status: "blocked" },
+        });
+        break;
+      case "unblock":
+        await prisma.premiumKey.update({
+          where: { id: keyId },
+          data: { isActive: true, status: "active" },
+        });
+        break;
+      case "extend":
+        if (!extraDays || extraDays < 1) {
+          return NextResponse.json(
+            { error: "Extra days must be at least 1" },
+            { status: 400 },
+          );
+        }
+        const newExpiresAt =
+          targetKey.expiresAt ?
+            new Date(
+              targetKey.expiresAt.getTime() + extraDays * 24 * 60 * 60 * 1000,
+            )
+          : new Date(Date.now() + extraDays * 24 * 60 * 60 * 1000);
+        await prisma.premiumKey.update({
+          where: { id: keyId },
+          data: {
+            expiresAt: newExpiresAt,
+            isActive: true,
+            status: "active",
+          },
+        });
         break;
       case "delete":
         await prisma.premiumKey.delete({ where: { id: keyId } });
@@ -144,6 +199,9 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Admin key update error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

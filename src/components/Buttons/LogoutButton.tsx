@@ -2,7 +2,7 @@ import { authClient } from "@/lib/auth-client";
 import { LoaderIcon, LogOutIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { Button } from "../shadcnui/button";
 
 const LogoutButton = () => {
@@ -18,7 +18,7 @@ const LogoutButton = () => {
 
       toast.success("Logout successful");
 
-      replace("/auth");
+      replace("/");
     } catch (error) {
       console.log(error);
 

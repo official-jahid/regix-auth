@@ -14,7 +14,7 @@ const RootLayout = ({ children }: RootLayoutProps) => {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning>
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider
           attribute={"class"}
           defaultTheme="dark"
