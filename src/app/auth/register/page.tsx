@@ -4,36 +4,37 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from "@/components/shadcnui/card";
 import { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Register | Auth App",
-  description: "Register page of auth profile project",
+  title: "Register | Regix Auth",
+  description: "Create your Regix Auth account",
 };
 
-const page = () => {
+export default function RegisterPage() {
   return (
-    <section className="grid h-dvh place-items-center">
-      <Card className="w-xs">
-        <CardHeader className="text-center text-2xl">Register Form</CardHeader>
+    <section className="grid min-h-dvh place-items-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl sm:text-3xl">Register</CardTitle>
+        </CardHeader>
 
         <CardContent>
           <RegisterForm />
         </CardContent>
 
-        <CardFooter className="justify-center gap-1">
+        <CardFooter className="justify-center gap-1 text-sm">
           Already have an account?
           <Link
-            href={"/auth"}
-            className="text-primary hover:underline">
+            href="/auth"
+            className="text-primary font-medium hover:underline">
             Login
           </Link>
         </CardFooter>
       </Card>
     </section>
   );
-};
-
-export default page;
+}

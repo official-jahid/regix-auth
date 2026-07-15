@@ -155,6 +155,7 @@ export {
   DialogHeader,
   DialogOverlay,
   DialogPortal,
+  DialogPrimitive,
   DialogTitle,
   DialogTrigger,
 }

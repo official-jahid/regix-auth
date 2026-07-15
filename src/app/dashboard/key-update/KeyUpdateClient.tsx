@@ -48,8 +48,8 @@ export default function KeyUpdateClient() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-lg items-center px-4">
-      <div className="w-full space-y-6">
+    <div className="flex min-h-dvh items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md space-y-6">
         {/* Warning Banner */}
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 sm:p-6">
           <div className="flex items-start gap-3">

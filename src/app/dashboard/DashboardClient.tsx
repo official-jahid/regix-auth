@@ -21,7 +21,21 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 import type { DashboardData } from "./page";
+import { Button } from "@/components/shadcnui/button";
+import { Input } from "@/components/shadcnui/input";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/shadcnui/dialog";
+import { DialogPrimitive } from "@base-ui/react/dialog";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
@@ -39,6 +53,55 @@ function formatDateTime(iso: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function formatCountdown(expiresAt: string | null) {
+  if (!expiresAt) return null;
+  const expiry = new Date(expiresAt);
+  const now = new Date();
+  const diff = expiry.getTime() - now.getTime();
+
+  if (diff <= 0) return { text: "Expired", urgent: true };
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+  const urgent = days < 7;
+  const text = days > 0
+    ? `${days}d ${hours}h ${minutes}m`
+    : `${hours}h ${minutes}m ${seconds}s`;
+
+  return { text, urgent };
+}
+
+function useExpiryCountdown(expiresAt: string | null) {
+  const [countdown, setCountdown] = useState<string | null>(null);
+  const [isUrgent, setIsUrgent] = useState(false);
+
+  useEffect(() => {
+    if (!expiresAt) {
+      setCountdown(null);
+      setIsUrgent(false);
+      return;
+    }
+
+    const updateCountdown = () => {
+      const result = formatCountdown(expiresAt);
+      if (result) {
+        setCountdown(result.text);
+        setIsUrgent(result.urgent);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return { countdown, isUrgent };
 }
 
 function parseUserAgent(ua: string | null): {
@@ -222,19 +285,21 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                   <p
                     className={`mt-1 flex items-center gap-1.5 text-sm font-medium ${keyStatus.color}`}>
                     <KeyStatusIcon className="size-3.5 sm:size-4" />
-                    {keyStatus.label}
-                  </p>
-                </div>
-                {premiumKey.expiresAt && (
-                  <div className="bg-muted/30 rounded-xl p-2.5 sm:p-3">
-                    <span className="text-muted-foreground text-xs">
-                      Expires
-                    </span>
-                    <p className="mt-1 text-sm font-medium">
-                      {formatDate(premiumKey.expiresAt)}
-                    </p>
-                  </div>
-                )}
+{keyStatus.label}
+                   </p>
+                 </div>
+                 {premiumKey.expiresAt && !premiumKey.isLifetime && (
+                   <div className="bg-muted/30 rounded-xl p-2.5 sm:p-3">
+                     <span className="text-muted-foreground text-xs">
+                       Expires
+                     </span>
+                     <p className="mt-1 flex items-center gap-1.5 text-sm font-medium">
+                       <Clock className="text-primary size-3.5 sm:size-4" />
+                       {formatDate(premiumKey.expiresAt)}
+                       <ExpiryCountdown expiresAt={premiumKey.expiresAt} />
+                     </p>
+                   </div>
+                 )}
                 {premiumKey.redeemedAt && (
                   <div className="bg-muted/30 rounded-xl p-2.5 sm:p-3">
                     <span className="text-muted-foreground text-xs">
@@ -387,6 +452,24 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
   );
 }
 
+function ExpiryCountdown({ expiresAt }: { expiresAt: string }) {
+  const { countdown, isUrgent } = useExpiryCountdown(expiresAt);
+
+  if (!countdown) return null;
+
+  return (
+    <span
+      className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+        isUrgent
+          ? "animate-pulse text-red-500"
+          : "text-muted-foreground"
+      }`}
+      title="Time until expiration">
+      {countdown}
+    </span>
+  );
+}
+
 function DashboardForm({
   device,
   discord,
@@ -394,6 +477,75 @@ function DashboardForm({
   device: { sid: string | null; ipAddress: string | null } | null;
   discord: { discordId: string | null } | null;
 }) {
+  const [sid, setSid] = useState(device?.sid || "");
+  const [ipAddress, setIpAddress] = useState(device?.ipAddress || "");
+  const [discordId, setDiscordId] = useState(discord?.discordId || "");
+  const [updatingField, setUpdatingField] = useState<string | null>(null);
+
+  const handleUpdateSid = async () => {
+    if (!sid.trim()) return;
+    setUpdatingField("sid");
+    try {
+      await fetch("/api/dashboard/device", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sid }),
+      });
+      toast.success("SID updated");
+      window.location.reload();
+    } catch {
+      toast.error("Failed to update SID");
+    } finally {
+      setUpdatingField(null);
+    }
+  };
+
+  const handleAutoDetectIp = async () => {
+    try {
+      const res = await fetch("https://api.ipify.org?format=json");
+      const data = await res.json();
+      setIpAddress(data.ip);
+    } catch {
+      toast.error("Failed to auto-detect IP");
+    }
+  };
+
+  const handleUpdateIp = async () => {
+    if (!ipAddress.trim()) return;
+    setUpdatingField("ip");
+    try {
+      await fetch("/api/dashboard/device", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ipAddress }),
+      });
+      toast.success("IP address updated");
+      window.location.reload();
+    } catch {
+      toast.error("Failed to update IP");
+    } finally {
+      setUpdatingField(null);
+    }
+  };
+
+  const handleUpdateDiscord = async () => {
+    if (!discordId.trim()) return;
+    setUpdatingField("discord");
+    try {
+      await fetch("/api/dashboard/discord", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ discordId }),
+      });
+      toast.success("Discord ID updated");
+      window.location.reload();
+    } catch {
+      toast.error("Failed to update Discord");
+    } finally {
+      setUpdatingField(null);
+    }
+  };
+
   return (
     <div className="space-y-3 sm:space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
@@ -402,29 +554,17 @@ function DashboardForm({
           <label className="text-muted-foreground text-xs font-medium">
             New SID
           </label>
-          <input
+          <Input
             type="text"
-            id="sid-input"
-            defaultValue={device?.sid || ""}
-            placeholder="Enter new SID"
-            className="bg-background ring-primary/50 w-full rounded-lg border px-3 py-2 text-xs outline-none focus:ring-2 sm:text-sm"
+            value={sid}
+            onChange={(e) => setSid(e.target.value)}
+            placeholder="Enter new SID / HWID"
           />
-          <button
-            onClick={async () => {
-              const sid = (
-                document.getElementById("sid-input") as HTMLInputElement
-              ).value;
-              if (!sid) return;
-              await fetch("/api/dashboard/device", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sid }),
-              });
-              window.location.reload();
-            }}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:text-sm">
-            Update SID
-          </button>
+          <Button
+            onClick={handleUpdateSid}
+            disabled={updatingField === "sid" || !sid.trim()}>
+            {updatingField === "sid" ? "Updating..." : "Update SID"}
+          </Button>
         </div>
 
         {/* IP Address */}
@@ -432,47 +572,28 @@ function DashboardForm({
           <label className="text-muted-foreground text-xs font-medium">
             IP Address
           </label>
-          <input
-            type="text"
-            id="ip-input"
-            defaultValue={device?.ipAddress || ""}
-            placeholder="Enter IP"
-            className="bg-background ring-primary/50 w-full rounded-lg border px-3 py-2 text-xs outline-none focus:ring-2 sm:text-sm"
-          />
           <div className="flex gap-2">
-            <button
-              onClick={async () => {
-                try {
-                  const res = await fetch("https://api.ipify.org?format=json");
-                  const data = await res.json();
-                  (
-                    document.getElementById("ip-input") as HTMLInputElement
-                  ).value = data.ip;
-                } catch {
-                  alert("Failed to auto-detect IP");
-                }
-              }}
-              className="bg-card hover:bg-accent flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors sm:text-sm">
-              <Wifi className="mr-1 inline size-3 sm:size-3.5" />
-              Auto
-            </button>
-            <button
-              onClick={async () => {
-                const ip = (
-                  document.getElementById("ip-input") as HTMLInputElement
-                ).value;
-                if (!ip) return;
-                await fetch("/api/dashboard/device", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ ipAddress: ip }),
-                });
-                window.location.reload();
-              }}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors sm:text-sm">
-              Update IP
-            </button>
+            <Input
+              type="text"
+              value={ipAddress}
+              onChange={(e) => setIpAddress(e.target.value)}
+              placeholder="Enter IP"
+              className="flex-1"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleAutoDetectIp}
+              disabled={updatingField === "ip"}
+              title="Auto-detect IP">
+              <Wifi className="size-3.5 sm:size-4" />
+            </Button>
           </div>
+          <Button
+            onClick={handleUpdateIp}
+            disabled={updatingField === "ip" || !ipAddress.trim()}>
+            {updatingField === "ip" ? "Updating..." : "Update IP"}
+          </Button>
         </div>
 
         {/* Discord ID */}
@@ -480,29 +601,17 @@ function DashboardForm({
           <label className="text-muted-foreground text-xs font-medium">
             Discord ID
           </label>
-          <input
+          <Input
             type="text"
-            id="discord-input"
-            defaultValue={discord?.discordId || ""}
-            placeholder="Enter Discord ID"
-            className="bg-background ring-primary/50 w-full rounded-lg border px-3 py-2 text-xs outline-none focus:ring-2 sm:text-sm"
+            value={discordId}
+            onChange={(e) => setDiscordId(e.target.value)}
+            placeholder="Enter Discord ID (e.g. 123456789012345678)"
           />
-          <button
-            onClick={async () => {
-              const discordId = (
-                document.getElementById("discord-input") as HTMLInputElement
-              ).value;
-              if (!discordId) return;
-              await fetch("/api/dashboard/discord", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ discordId }),
-              });
-              window.location.reload();
-            }}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg px-4 py-2 text-xs font-medium transition-colors sm:text-sm">
-            Update Discord
-          </button>
+          <Button
+            onClick={handleUpdateDiscord}
+            disabled={updatingField === "discord" || !discordId.trim()}>
+            {updatingField === "discord" ? "Updating..." : "Update Discord"}
+          </Button>
         </div>
       </div>
     </div>
@@ -510,35 +619,87 @@ function DashboardForm({
 }
 
 function RedeemForm() {
+  const [accessKey, setAccessKey] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+
+  const handleRedeem = async () => {
+    if (!accessKey.trim()) {
+      setError("Access key is required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/dashboard/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: accessKey }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Key redeemed successfully");
+        setOpen(false);
+        window.location.reload();
+      } else {
+        setError(data.error || "Failed to redeem key");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="space-y-2.5 sm:space-y-3">
-      <input
-        type="text"
-        id="redeem-input"
-        placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
-        className="bg-background ring-primary/50 w-full rounded-lg border px-3 py-2 font-mono text-xs outline-none focus:ring-2 sm:text-sm"
-      />
-      <button
-        onClick={async () => {
-          const key = (
-            document.getElementById("redeem-input") as HTMLInputElement
-          ).value;
-          if (!key) return;
-          const res = await fetch("/api/dashboard/redeem", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ key }),
-          });
-          const data = await res.json();
-          if (data.success) {
-            window.location.reload();
-          } else {
-            alert(data.error || "Failed to redeem key");
-          }
-        }}
-        className="bg-primary text-primary-foreground hover:bg-primary/90 w-full rounded-lg px-4 py-2 text-sm font-medium transition-colors">
-        Redeem Key
-      </button>
-    </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary" size="sm">
+          <Key className="size-3.5 sm:size-4" />
+          Redeem Key
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Redeem License Key</DialogTitle>
+          <DialogDescription>
+            Enter your license key to unlock premium features. Keys are in format:
+            XXXXX-XXXXX-XXXXX-XXXXX
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <Input
+            id="access-key"
+            value={accessKey}
+            onChange={(e) => {
+              setAccessKey(e.target.value.toUpperCase());
+              setError(null);
+            }}
+            placeholder="XXXXX-XXXXX-XXXXX-XXXXX"
+            className="font-mono tracking-wider"
+            autoComplete="off"
+          />
+{error && (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+        </div>
+        <DialogFooter>
+          <DialogPrimitive.Close
+            render={<Button variant="outline">Cancel</Button>}
+          />
+          <Button
+            onClick={handleRedeem}
+            disabled={isSubmitting || !accessKey.trim()}
+          >
+            {isSubmitting ? "Redeeming..." : "Redeem Key"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
