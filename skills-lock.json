@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-auth-cli": {
+      "source": "better-auth/agent-auth",
+      "sourceType": "github",
+      "skillPath": "skills/agent-auth-cli/SKILL.md",
+      "computedHash": "8457f8703e77f9eea87e66f39e26f57d9719ecb9c2472602b080c434307da816"
+    },
+    "agent-auth-connectors": {
+      "source": "better-auth/agent-auth",
+      "sourceType": "github",
+      "skillPath": "skills/agent-auth-connectors/SKILL.md",
+      "computedHash": "df1268e3233f74c6ab3343e6c9107b9d6c8c2e1b5541ca8b8c1b7dac01cd23f7"
+    },
+    "agent-auth-mcp": {
+      "source": "better-auth/agent-auth",
+      "sourceType": "github",
+      "skillPath": "skills/agent-auth-mcp/SKILL.md",
+      "computedHash": "25a0b33960fe4db31d49c56ffc547161363bb1022ad542dcbbc60a1f1f7853ad"
+    },
+    "better-auth-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/best-practices/SKILL.md",
+      "computedHash": "f35281e7a0c07b3fd3c4e96c7833dafb294a3a8662cb68a8544f4225008d6568"
+    },
+    "better-auth-security-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "security/SKILL.md",
+      "computedHash": "087c1094fa5f1834af4785c058dcc8c9abe4c1321b853883c76ea46c93a21cfe"
+    },
+    "better-icons": {
+      "source": "better-auth/better-icons",
+      "sourceType": "github",
+      "skillPath": "skills/SKILL.md",
+      "computedHash": "b16a2f5830f3db40695fdd58d415a631e9fb6170a0cc5d3b56469d17e53596bc"
+    },
+    "create-auth": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/create-auth/SKILL.md",
+      "computedHash": "d101953fda9452eb4e59d4eb50aa829c1961cdd7d0587d26a2b1871abe885e07"
+    },
+    "email-and-password-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/emailAndPassword/SKILL.md",
+      "computedHash": "ac9f9b0a549390f157ec62f5421a0bc90ac622c7e425af13155953847e0b68ea"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "computedHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
+    },
+    "organization-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/organization/SKILL.md",
+      "computedHash": "f03e41bc2995c4fceec98f3db85f9638d71cc391fb10f9d85460304d6642efc2"
+    },
+    "prisma-8": {
+      "source": "prisma/orm",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-8/SKILL.md",
+      "computedHash": "61a81b2e84a69b40f7dd2ba037e6a3a7bc11652546355ce6add2743c385590dc"
+    },
+    "prisma-cli": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-cli/SKILL.md",
+      "computedHash": "b92e55aef78f6796d81433c44738a6733211a04c16e65cbad6d42c5f71092aab"
+    },
+    "prisma-client-api": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-client-api/SKILL.md",
+      "computedHash": "5dcc0793337151efa73a444e5adbc7e1c24180778e83b4fe94c9109c391bd333"
+    },
+    "prisma-compute": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-compute/SKILL.md",
+      "computedHash": "fbbdcf3e01ed876113d18804d38d17359d9f7ba7a4bd353193673d5924f19818"
+    },
+    "prisma-database-setup": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-database-setup/SKILL.md",
+      "computedHash": "0d6f44ac34b1ed3f8ed2970ecf90483d0f658fd1d204458f62bfefa28f31b095"
+    },
+    "prisma-driver-adapter-implementation": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-driver-adapter-implementation/SKILL.md",
+      "computedHash": "07484627aea6cce4d0f94b4090ff9acc0caa7e104f9988b95abecf80132f4103"
+    },
+    "prisma-mongodb-upgrade": {
+      "source": "prisma/skills",
+      "sourceType": "github",
+      "skillPath": "prisma-mongodb-upgrade/SKILL.md",
+      "computedHash": "f9ba440e88ca4cec9801d04762296e29e99ca08cb8a8156e4f783ecf90279c8f"
+    },
+    "prisma-next": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next/SKILL.md",
+      "computedHash": "b52ac75c388fa0ab956e045d657871f2ee0556beda1529c0fb24c34b8abba431"
+    },
+    "prisma-next-build": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-build/SKILL.md",
+      "computedHash": "ec2baef8672ab09f20fc7dd55441e3fbacba7ca3efdfedf948fb306029447f6f"
+    },
+    "prisma-next-contract": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-contract/SKILL.md",
+      "computedHash": "79678026fe83749c3767c7427c70588eba1b79c05b0dc54719830715c85cff36"
+    },
+    "prisma-next-debug": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-debug/SKILL.md",
+      "computedHash": "52ed9eeea88864e2c4afaee1e8ea1508d98ffa4da7ca7bcdf25bc0ed1b076e12"
+    },
+    "prisma-next-extension-upgrade": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/extension-author/prisma-next-extension-upgrade/SKILL.md",
+      "computedHash": "63f2945397738fa742ac7ada7b5b994659ef9ae14f68bab3b93af911ef1fbec6"
+    },
+    "prisma-next-feedback": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-feedback/SKILL.md",
+      "computedHash": "8c0b3fd53fa3fb67cafb682b6b5b3de735e12c2ca6af6ad49c7380c8e181c66a"
+    },
+    "prisma-next-migration-review": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-migration-review/SKILL.md",
+      "computedHash": "fd5359a22e3e6ed12a671718cafe96ccc627b0aa59330fb95dc1f9149a577c2d"
+    },
+    "prisma-next-migrations": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-migrations/SKILL.md",
+      "computedHash": "34b7a69e89c2e7e74ab0fe93121faa326e82da0bfb0f18752f437e5f75557adb"
+    },
+    "prisma-next-queries": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-queries/SKILL.md",
+      "computedHash": "a7c10a00f06eb79dfde4f702ee47df94a57916f4e31cc12b57920a4311d85f61"
+    },
+    "prisma-next-quickstart": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-quickstart/SKILL.md",
+      "computedHash": "da52052b2a19ec6b04ac4dd6e5d4240a8266fec0d1f889d117c7aa465c1a926c"
+    },
+    "prisma-next-runtime": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-runtime/SKILL.md",
+      "computedHash": "5ab4c5abc8de728e5622f56903a5d1a1bab20e10dddddbad33e1c8104e949a18"
+    },
+    "prisma-next-supabase": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-next-supabase/SKILL.md",
+      "computedHash": "687f8ac5dcdac451b31f1de9a146e5fa185e3e06af6cfecf26da6b060357aa9f"
+    },
+    "prisma-next-upgrade": {
+      "source": "prisma/prisma-next",
+      "sourceType": "github",
+      "skillPath": "skills/upgrade/prisma-next-upgrade/SKILL.md",
+      "computedHash": "f7c6ad111c953da25794cc313d30aa7843c0b726aca3c6d8c61636c2cf11e7bd"
+    },
+    "prisma-platform-core-concepts": {
+      "source": "prisma/prisma-cli",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-platform-core-concepts/SKILL.md",
+      "computedHash": "892067c4784f485b64610681d892d0e42520abfea3117df2c713aa0846f674bb"
+    },
+    "prisma-postgres": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-postgres/SKILL.md",
+      "computedHash": "d669fbd0d8017d16c967f18b20e1c1345cd4a2a0076d762459bfef79f551f655"
+    },
+    "prisma-postgres-setup": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-postgres-setup/SKILL.md",
+      "computedHash": "c89d3aa91285d8e4964fcaa5238c99a3d3c20b617e032e731cf632330a85a5a6"
+    },
+    "prisma-upgrade-v7": {
+      "source": "prisma/prisma-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-upgrade-v7/SKILL.md",
+      "computedHash": "075d1fc3156d5593c3e9a559ebb07f82a2991db07125ff9df16ad90270f5c584"
+    },
+    "two-factor-authentication-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/twoFactor/SKILL.md",
+      "computedHash": "ca66fbdc0281f43065a6c890a9982afba774565085e773863ce31280324d9425"
+    }
+  }
+}
