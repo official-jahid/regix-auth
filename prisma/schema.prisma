@@ -2,12 +2,290 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client"
-    output   = "../generated/prisma"
-    // Target runtime environment. Default: nodejs
-    // runtime  = "nodejs"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  // Target runtime environment. Default: nodejs
+  // runtime  = "nodejs"
 }
 
 datasource db {
-    provider = "sqlite"
+  provider = "sqlite"
+}
+
+model User {
+  id              String    @id
+  name            String
+  email           String
+  emailVerified   Boolean   @default(false)
+  image           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  username        String?
+  displayUsername String?
+  role            String?
+  banned          Boolean?  @default(false)
+  banReason       String?
+  banExpires      DateTime?
+  provider        String?
+  sessions        Session[]
+  accounts        Account[]
+  ownedLicenses   LicenseKey[]     @relation("LicenseOwner")
+  createdLicenses LicenseKey[]     @relation("LicenseCreator")
+  renewalRequests RenewalRequest[]
+  announcementAcks AnnouncementAck[]
+
+  @@unique([email])
+  @@unique([username])
+  @@index([role])
+  @@index([provider])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Category {
+  id             String     @id @default(cuid())
+  name           String
+  slug           String
+  description    String?
+  parentId       String?
+  parent         Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children       Category[] @relation("CategoryTree")
+  color          String?
+  icon           String?
+  sortOrder      Int        @default(0)
+  status         String     @default("active")
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  posts          PostCategory[]
+
+  @@unique([slug])
+  @@index([parentId])
+  @@index([status])
+  @@index([sortOrder])
+  @@map("category")
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  color       String?
+  sortOrder   Int       @default(0)
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  posts       PostTag[]
+
+  @@unique([slug])
+  @@index([status])
+  @@index([sortOrder])
+  @@map("tag")
+}
+
+model Post {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String
+  excerpt     String?
+  content     String
+  coverUrl    String?
+  status      String         @default("draft")
+  publishedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  categories  PostCategory[]
+  tags        PostTag[]
+
+  @@unique([slug])
+  @@index([status])
+  @@map("post")
+}
+
+model PostCategory {
+  postId     String
+  categoryId String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+  @@index([categoryId])
+  @@map("post_category")
+}
+
+model PostTag {
+  postId String
+  tagId  String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("post_tag")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String
+  description String?
+  version     String?
+  expiryDays  Int?
+  status      String   @default("active")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  licenses    LicenseKey[]
+
+  @@unique([slug])
+  @@index([status])
+  @@index([sortOrder])
+  @@map("product")
+}
+
+model LicenseKey {
+  id          String   @id @default(cuid())
+  key         String
+  provider    String   @default("REGIX")
+  duration    String?
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  ownerId     String?
+  owner       User?    @relation("LicenseOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  createdById String?
+  createdBy   User?    @relation("LicenseCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  isUsed      Boolean  @default(false)
+  usedBy      String?
+  active      Boolean  @default(true)
+  expiresAt   DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  activations Activation[]
+  renewals    RenewalRequest[]
+
+  @@unique([key])
+  @@index([productId])
+  @@index([ownerId])
+  @@index([createdById])
+  @@index([provider])
+  @@index([active])
+  @@map("license_key")
+}
+
+model Activation {
+  id        String     @id @default(cuid())
+  licenseId String
+  license   LicenseKey @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  deviceId  String?
+  ip        String?
+  sid       String?
+  active    Boolean    @default(true)
+  revokedAt DateTime?
+  createdAt DateTime   @default(now())
+
+  @@index([licenseId])
+  @@index([active])
+  @@map("activation")
+}
+
+model RenewalRequest {
+  id          String     @id @default(cuid())
+  licenseId   String
+  license     LicenseKey @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  requesterId String?
+  requester   User?      @relation(fields: [requesterId], references: [id], onDelete: SetNull)
+  status      String     @default("pending")
+  note        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([licenseId])
+  @@index([status])
+  @@map("renewal_request")
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  urgency   String   @default("info")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  acks      AnnouncementAck[]
+
+  @@index([active])
+  @@map("announcement")
+}
+
+model AnnouncementAck {
+  announcementId String
+  userId         String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+
+  @@id([announcementId, userId])
+  @@index([userId])
+  @@map("announcement_ack")
+}
+
+model Resource {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  @@map("resource")
 }

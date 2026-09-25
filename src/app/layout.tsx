@@ -1,4 +1,5 @@
 import ThemeProvider from "@/components/Providers/ThemeProvider";
+import { TooltipProvider } from "@/components/shadcnui/tooltip";
 import { geistMono, geistSans, interHeading } from "@/lib/fonts";
 import { LayoutProps } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -20,7 +21,7 @@ const RootLayout = ({ children }: LayoutProps) => {
           attribute={"class"}
           defaultTheme="dark"
           enableSystem={false}>
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
